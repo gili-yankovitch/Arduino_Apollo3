@@ -23,7 +23,7 @@
 #define String_class_h
 #ifdef __cplusplus
 
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <avr/pgmspace.h>

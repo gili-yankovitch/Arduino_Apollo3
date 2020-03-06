@@ -13,3 +13,8 @@
 *.elf
 *.axf
 /test-results
+
+# Makefile stuff
+*.o
+*.oo
+*.d
