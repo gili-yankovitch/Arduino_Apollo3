@@ -44,7 +44,9 @@ LDFLAGS += -Lcores/${CORE}/am_sdk_ap3/CMSIS/ARM/Lib/ARM -larm_cortexM4lf_math
 LDFLAGS += -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 LDFLAGS += -static
 LDFLAGS += -Wl,--gc-sections,--entry,Reset_Handler -Wl,--start-group -lm -lc -lgcc -Wl,--end-group
-LDFLAGS += -fno-exceptions -nostdlib --specs=nano.specs -t -lstdc++ -lc -lnosys -lm
+LDFLAGS += -fno-exceptions --specs=nano.specs -t -lstdc++ -lc -lnosys -lm
+LDFLAGS += -L${HAL}/bin/ -lam_hal
+LDFLAGS += -nostdlib
 
 LD_SCRIPT = variants/${VARIANT}/linker_scripts/gcc/artemis_sbl_svl_app.ld
 
@@ -104,7 +106,8 @@ OBJS_CXX = $(SOURCES_CPP:%.cpp=%.oo)
 all: ${TARGET_NAME}
 
 ${TARGET_NAME}: hal ${OBJS_C} ${OBJS_CXX}
-	${LD} ${LDFLAGS} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} ${HAL}/bin/libam_hal.a -o $@
+	${LD} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} ${LDFLAGS} -L${HAL}/bin/ -lam_hal -o $@
+	#${LD} ${LDFLAGS} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} -o $@
 
 hal:
 	make -C ${HAL}
