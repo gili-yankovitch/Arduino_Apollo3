@@ -1,9 +1,15 @@
+# ##### UTILITIES ##### #
 CROSS_COMPILE = arm-none-eabi
 AS = ${CROSS_COMPILE}-gcc
+AR = ${CROSS_COMPILE}-ar
 CC = ${CROSS_COMPILE}-gcc
 CXX = ${CROSS_COMPILE}-g++
 LD = ${CROSS_COMPILE}-gcc
+AXF2BIN = ${CROSS_COMPILE}-objcopy
+SIZE = ${CROSS_COMPILE}-size
+UPLOAD = tools/artemis/linux/artemis_svl
 
+# ##### CONFIGURATION ##### #
 TARGET_NAME = Apollo3Artemis
 VARIANT = redboard_artemis_nano
 CORE = arduino
@@ -13,6 +19,11 @@ CPU = cortex-m4
 FPU = fpv4-sp-d16
 FABI = hard
 
+# ##### SERIAL PORT ##### #
+SERIAL_PORT = /dev/ttyUSB0
+BAUD_RATE = 115200
+
+# ##### BUILD FLAGS ##### #
 INCLUDE =
 INCLUDE += -Ivariants/${VARIANT}/bsp
 INCLUDE += -Ivariants/${VARIANT}/config
@@ -44,11 +55,18 @@ LDFLAGS += -Lcores/${CORE}/am_sdk_ap3/CMSIS/ARM/Lib/ARM -larm_cortexM4lf_math
 LDFLAGS += -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 LDFLAGS += -static
 LDFLAGS += -Wl,--gc-sections,--entry,Reset_Handler -Wl,--start-group -lm -lc -lgcc -Wl,--end-group
+LDFLAGS += -Wl,-Map,${TARGET_NAME}.map
 LDFLAGS += -fno-exceptions --specs=nano.specs -t -lstdc++ -lc -lnosys -lm
 LDFLAGS += -L${HAL}/bin/ -lam_hal
 LDFLAGS += -nostdlib
 
 LD_SCRIPT = variants/${VARIANT}/linker_scripts/gcc/artemis_sbl_svl_app.ld
+
+ARFLAGS =
+ARGLAGS += rcs
+
+AXFFLAGS =
+AXFFLAGS += -O binary
 
 # ##### SOURCES ##### #
 
@@ -95,9 +113,12 @@ CORE_SOURCES += cores/${CORE}/ard_sup/iomaster/ap3_iomaster.cpp
 
 STARTUP_SOURCES = variants/${VARIANT}/startup/startup_gcc.c
 
+PAYLOAD_SOURCES =
+PAYLOAD_SOURCES += payload/blink.cpp
+
 # SOURCES_ASM = cores/${CORE}/am_sdk_ap3/CMSIS/AmbiqMicro/Source/startup_apollo3.s
 SOURCES_C = ${BSP_SOURCES} ${UTILS_SOURCES} ${STARTUP_SOURCES}
-SOURCES_CPP = ${CONFIG_SOURCES} ${CORE_SOURCES}
+SOURCES_CPP = ${CONFIG_SOURCES} ${CORE_SOURCES} ${PAYLOAD_SOURCES}
 
 OBJS_ASM = $(SOURCES_ASM:%.s=%.os)
 OBJS_C = $(SOURCES_C:%.c=%.o)
@@ -106,8 +127,12 @@ OBJS_CXX = $(SOURCES_CPP:%.cpp=%.oo)
 all: ${TARGET_NAME}
 
 ${TARGET_NAME}: hal ${OBJS_C} ${OBJS_CXX}
-	${LD} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} ${LDFLAGS} -L${HAL}/bin/ -lam_hal -o $@
-	#${LD} ${LDFLAGS} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} -o $@
+	${LD} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} ${LDFLAGS} -L${HAL}/bin/ -lam_hal -o $@.axf
+	${AXF2BIN} ${AXFFLAGS} ${TARGET_NAME}.axf ${TARGET_NAME}.bin
+	${SIZE} -A ${TARGET_NAME}.axf
+
+upload: ${TARGET_NAME}
+	${UPLOAD} ${SERIAL_PORT} -f ${TARGET_NAME}.bin -b ${BAUD_RATE}
 
 hal:
 	make -C ${HAL}
@@ -126,3 +151,4 @@ hal:
 
 clean:
 	rm -rf ${OBJS_C} ${OBJS_CXX}
+	rm -rf ${TARGET_NAME}.axf ${TARGET_NAME}.map
