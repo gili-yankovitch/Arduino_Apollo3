@@ -7,7 +7,8 @@ CXX = ${CROSS_COMPILE}-g++
 LD = ${CROSS_COMPILE}-gcc
 AXF2BIN = ${CROSS_COMPILE}-objcopy
 SIZE = ${CROSS_COMPILE}-size
-UPLOAD = tools/artemis/linux/artemis_svl
+#UPLOAD = tools/artemis/linux/artemis_svl
+UPLOAD = tools/artemis/artemis_svl.py
 
 # ##### CONFIGURATION ##### #
 TARGET_NAME = Apollo3Artemis
@@ -113,26 +114,35 @@ CORE_SOURCES += cores/${CORE}/ard_sup/iomaster/ap3_iomaster.cpp
 
 STARTUP_SOURCES = variants/${VARIANT}/startup/startup_gcc.c
 
+LIBRARIES_SOURCES =
+LIBRARIES_SOURCES += libraries/Wire/src/Wire.cpp
+
+LIBRARIES_INCLUDE =
+LIBRARIES_INCLUDE += -Ilibraries/Wire/src/
+
+INCLUDE += ${LIBRARIES_INCLUDE}
+
 PAYLOAD_SOURCES =
 PAYLOAD_SOURCES += payload/blink.cpp
 
 # SOURCES_ASM = cores/${CORE}/am_sdk_ap3/CMSIS/AmbiqMicro/Source/startup_apollo3.s
 SOURCES_C = ${BSP_SOURCES} ${UTILS_SOURCES} ${STARTUP_SOURCES}
-SOURCES_CPP = ${CONFIG_SOURCES} ${CORE_SOURCES} ${PAYLOAD_SOURCES}
+SOURCES_CPP = ${CONFIG_SOURCES} ${CORE_SOURCES} ${PAYLOAD_SOURCES} ${LIBRARIES_SOURCES}
 
 OBJS_ASM = $(SOURCES_ASM:%.s=%.os)
 OBJS_C = $(SOURCES_C:%.c=%.o)
 OBJS_CXX = $(SOURCES_CPP:%.cpp=%.oo)
 
-all: ${TARGET_NAME}
+all: ${TARGET_NAME}.bin
 
-${TARGET_NAME}: hal ${OBJS_C} ${OBJS_CXX}
-	${LD} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} ${LDFLAGS} -L${HAL}/bin/ -lam_hal -o $@.axf
+${TARGET_NAME}.bin: hal ${OBJS_C} ${OBJS_CXX}
+	${LD} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} ${LDFLAGS} -L${HAL}/bin/ -lam_hal -o ${TARGET_NAME}.axf 2> /dev/null 1> /dev/null
 	${AXF2BIN} ${AXFFLAGS} ${TARGET_NAME}.axf ${TARGET_NAME}.bin
 	${SIZE} -A ${TARGET_NAME}.axf
 
-upload: ${TARGET_NAME}
-	${UPLOAD} ${SERIAL_PORT} -f ${TARGET_NAME}.bin -b ${BAUD_RATE}
+upload: ${TARGET_NAME}.bin
+	if [[ ! -r ${SERIAL_PORT} || ! -w ${SERIAL_PORT} ]]; then   sudo chmod a+rw ${SERIAL_PORT} ; fi
+	${UPLOAD} ${SERIAL_PORT} -f ${TARGET_NAME}.bin -b ${BAUD_RATE};
 
 hal:
 	make -C ${HAL}

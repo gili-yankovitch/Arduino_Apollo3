@@ -13,18 +13,27 @@
 
 //#define blinkPin 5
 #include "Arduino.h"
+#include "Wire.h"
 
 #define blinkPin LED_BUILTIN
 
 void setup()
 {
-  pinMode(blinkPin, OUTPUT);
+	Serial.begin(115200);
+	// while (!Serial) ;
+
+	Serial.println("SparkFun Arduino Apollo3 Wire Example (I2C Scanner)");
+	// Serial.printf("Compiled on %s, %s\n\n", __DATE__, __TIME__);
+
+	Wire.begin();
+	pinMode(blinkPin, OUTPUT);
 }
 
 void loop()
 {
-  digitalWrite(blinkPin, LOW);
-  delay(5000);
-  digitalWrite(blinkPin, HIGH);
-  delay(1000);
+	digitalWrite(blinkPin, LOW);
+	delay(1000);
+	digitalWrite(blinkPin, HIGH);
+	delay(5000);
+	Serial.println("Hello, world 3!");
 }

@@ -18,3 +18,9 @@
 *.o
 *.oo
 *.d
+
+# nano stuff
+*.swp
+
+# Compiled file
+Apollo3Artemis*

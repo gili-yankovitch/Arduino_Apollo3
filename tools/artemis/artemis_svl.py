@@ -205,6 +205,9 @@ def phase_bootload(ser):
 
     verboseprint('\nphase:\tbootload')
 
+    sys.stdout.write('.')
+    sys.stdout.flush()
+
     with open(args.binfile, mode='rb') as binfile:
         application = binfile.read()
         total_len = len(application)
@@ -213,8 +216,8 @@ def phase_bootload(ser):
         curr_frame = 0
         progressChars = 0
 
-        if (not args.verbose):
-            print("[", end='')
+        #if (not args.verbose):
+        #    print("[", end='')
 
         verboseprint('\thave ' + str(total_len) +
                      ' bytes to send in ' + str(total_frames) + ' frames')
@@ -225,9 +228,9 @@ def phase_bootload(ser):
                 
             packet = wait_for_packet(ser)               # wait for indication by Artemis
             if(packet['timeout'] or packet['crc']):
-                print('\n\terror receiving packet')
-                print(packet)
-                print('\n')
+                #print('\n\terror receiving packet')
+                #print(packet)
+                #print('\n')
                 bl_failed = True
                 bl_done = True
 
@@ -242,7 +245,7 @@ def phase_bootload(ser):
                     bl_failed = True
                     bl_done = True
             else:
-                print('unknown error')
+                #print('unknown error')
                 bl_failed = True
                 bl_done = True
 
@@ -268,12 +271,13 @@ def phase_bootload(ser):
                 bl_done = True
 
         if( bl_failed == False ):
-            twopartprint('\n\t', 'Upload complete')
+            twopartprint('\n\t', '\n\tUpload complete')
             endTime = time.time()
             bps = total_len / (endTime - startTime)
             verboseprint('\n\tNominal bootload bps: ' + str(round(bps, 2)))
         else:
-            twopartprint('\n\t', 'Upload failed')
+            #twopartprint('\n\t', 'Upload failed')
+            pass
 
         return bl_failed
 
@@ -321,11 +325,13 @@ def phase_serial_port_help():
 # ***********************************************************************************
 def main():
     try:
-        num_tries = 3
+        #num_tries = 3
 
-        print('\n\nArtemis SVL Bootloader')
+        print('\nArtemis SVL Bootloader')
+        print('\tPress RST until upload')
 
-        for _ in range(num_tries):
+
+        while True: #for _ in range(num_tries):
 
             with serial.Serial(args.port, args.baud, timeout=args.timeout) as ser:
 
