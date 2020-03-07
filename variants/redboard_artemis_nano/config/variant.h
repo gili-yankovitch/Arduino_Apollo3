@@ -38,7 +38,7 @@ extern Uart Serial1;
 #define WIRE_INTERFACES_COUNT 1
 
 #define WireQwiic Wire // Giving Wire an alias of "WireQwiic" in case people want to use it
-#define AP3_Wire_IOM 2 // Secify that Wire uses IOMaster instance 2
+#define AP3_Wire_IOM 3 // Secify that Wire uses IOMaster instance 2
 
 // SPI Defines
 #define SPI_INTERFACES_COUNT 1

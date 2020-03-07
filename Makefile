@@ -38,7 +38,7 @@ INCLUDE += -Icores/${CORE}/am_sdk_ap3/utils/
 
 DEFINES =
 DEFINES += -DF_CPU=48000000L
-DEFINES += -DARDUINO=1.8.12
+DEFINES += -DARDUINO=1812
 DEFINES += -DARDUINO_AM_AP3_SFE_BB_ARTEMIS_NANO
 DEFINES += -DARDUINO_ARCH_APOLLO3
 DEFINES += -DPART_apollo3
@@ -92,7 +92,6 @@ UTILS_SOURCES += cores/${CORE}/ard_sup/ard_supers/hooks.c
 UTILS_SOURCES += cores/${CORE}/ard_sup/ard_supers/itoa.c
 UTILS_SOURCES += cores/${CORE}/ard_sup/ard_supers/avr/dtostrf.c
 
-
 CONFIG_SOURCES = variants/${VARIANT}/config/variant.cpp
 
 CORE_SOURCES =
@@ -116,14 +115,18 @@ STARTUP_SOURCES = variants/${VARIANT}/startup/startup_gcc.c
 
 LIBRARIES_SOURCES =
 LIBRARIES_SOURCES += libraries/Wire/src/Wire.cpp
+LIBRARIES_SOURCES += libraries/ATECCX08a/src/SparkFun_ATECCX08a_Arduino_Library.cpp
 
 LIBRARIES_INCLUDE =
 LIBRARIES_INCLUDE += -Ilibraries/Wire/src/
+LIBRARIES_INCLUDE += -Ilibraries/ATECCX08a/src/
 
 INCLUDE += ${LIBRARIES_INCLUDE}
 
 PAYLOAD_SOURCES =
-PAYLOAD_SOURCES += payload/blink.cpp
+#PAYLOAD_SOURCES += payload/blink.cpp
+#PAYLOAD_SOURCES += payload/wire.cpp
+PAYLOAD_SOURCES += payload/crypto.cpp
 
 # SOURCES_ASM = cores/${CORE}/am_sdk_ap3/CMSIS/AmbiqMicro/Source/startup_apollo3.s
 SOURCES_C = ${BSP_SOURCES} ${UTILS_SOURCES} ${STARTUP_SOURCES}
@@ -141,7 +144,8 @@ ${TARGET_NAME}.bin: hal ${OBJS_C} ${OBJS_CXX}
 	${SIZE} -A ${TARGET_NAME}.axf
 
 upload: ${TARGET_NAME}.bin
-	if [[ ! -r ${SERIAL_PORT} || ! -w ${SERIAL_PORT} ]]; then   sudo chmod a+rw ${SERIAL_PORT} ; fi
+	if [ ! -r ${SERIAL_PORT} ]; then  sudo chmod a+r ${SERIAL_PORT} ; fi
+	if [ ! -w ${SERIAL_PORT} ]; then  sudo chmod a+w ${SERIAL_PORT} ; fi
 	${UPLOAD} ${SERIAL_PORT} -f ${TARGET_NAME}.bin -b ${BAUD_RATE};
 
 hal:
