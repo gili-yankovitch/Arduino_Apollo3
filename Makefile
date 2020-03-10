@@ -35,6 +35,8 @@ INCLUDE += -Icores/${CORE}/am_sdk_ap3/CMSIS/AmbiqMicro/Include/
 INCLUDE += -Icores/${CORE}/am_sdk_ap3/CMSIS/ARM/Include/
 INCLUDE += -Icores/${CORE}/am_sdk_ap3/devices/
 INCLUDE += -Icores/${CORE}/am_sdk_ap3/utils/
+INCLUDE += -IFreeRTOSv10.1.1/Source/portable/GCC/AMapollo2/
+INCLUDE += -IFreeRTOSv10.1.1/Source/include/
 
 DEFINES =
 DEFINES += -DF_CPU=48000000L
@@ -44,6 +46,9 @@ DEFINES += -DARDUINO_ARCH_APOLLO3
 DEFINES += -DPART_apollo3
 DEFINES += -DAM_PACKAGE_BGA
 DEFINES += -DAM_PART_APOLLO3
+DEFINES += -DAM_FREERTOS
+DEFINES += -DWSF_TRACE_ENABLED
+DEFINES += -DWSF_TRACE_ENABLED
 
 COMMON_CXX_C_S_FLAGS = -c -g -MMD -mcpu=${CPU} -mthumb
 COMMON_CXX_C_FLAGS = -mcpu=${CPU} -mthumb -mfloat-abi=${FABI} -fdata-sections -Os
@@ -95,7 +100,7 @@ UTILS_SOURCES += cores/${CORE}/ard_sup/ard_supers/avr/dtostrf.c
 CONFIG_SOURCES = variants/${VARIANT}/config/variant.cpp
 
 CORE_SOURCES =
-CORE_SOURCES += cores/${CORE}/ard_sup/main.cpp
+# CORE_SOURCES += cores/${CORE}/ard_sup/main.cpp
 CORE_SOURCES += cores/${CORE}/ard_sup/uart/ap3_uart.cpp
 CORE_SOURCES += cores/${CORE}/ard_sup/initialization/ap3_initialization.cpp
 CORE_SOURCES += cores/${CORE}/ard_sup/timing/ap3_timing.cpp
@@ -113,6 +118,15 @@ CORE_SOURCES += cores/${CORE}/ard_sup/iomaster/ap3_iomaster.cpp
 
 STARTUP_SOURCES = variants/${VARIANT}/startup/startup_gcc.c
 
+FREERTOS_SOURCES =
+FREERTOS_SOURCES += FreeRTOSv10.1.1/Source/event_groups.c
+FREERTOS_SOURCES += FreeRTOSv10.1.1/Source/list.c
+FREERTOS_SOURCES += FreeRTOSv10.1.1/Source/queue.c
+FREERTOS_SOURCES += FreeRTOSv10.1.1/Source/tasks.c
+FREERTOS_SOURCES += FreeRTOSv10.1.1/Source/timers.c
+FREERTOS_SOURCES += FreeRTOSv10.1.1/Source/portable/MemMang/heap_2.c
+FREERTOS_SOURCES += FreeRTOSv10.1.1/Source/portable/GCC/AMapollo2/port.c
+
 LIBRARIES_SOURCES =
 LIBRARIES_SOURCES += libraries/Wire/src/Wire.cpp
 LIBRARIES_SOURCES += libraries/ATECCX08a/src/SparkFun_ATECCX08a_Arduino_Library.cpp
@@ -126,10 +140,12 @@ INCLUDE += ${LIBRARIES_INCLUDE}
 PAYLOAD_SOURCES =
 #PAYLOAD_SOURCES += payload/blink.cpp
 #PAYLOAD_SOURCES += payload/wire.cpp
-PAYLOAD_SOURCES += payload/crypto.cpp
+#PAYLOAD_SOURCES += payload/crypto.cpp
+PAYLOAD_SOURCES += payload/main.cpp
+PAYLOAD_SOURCES += payload/rtos.cpp
 
 # SOURCES_ASM = cores/${CORE}/am_sdk_ap3/CMSIS/AmbiqMicro/Source/startup_apollo3.s
-SOURCES_C = ${BSP_SOURCES} ${UTILS_SOURCES} ${STARTUP_SOURCES}
+SOURCES_C = ${BSP_SOURCES} ${UTILS_SOURCES} ${STARTUP_SOURCES} ${FREERTOS_SOURCES}
 SOURCES_CPP = ${CONFIG_SOURCES} ${CORE_SOURCES} ${PAYLOAD_SOURCES} ${LIBRARIES_SOURCES}
 
 OBJS_ASM = $(SOURCES_ASM:%.s=%.os)
@@ -139,7 +155,7 @@ OBJS_CXX = $(SOURCES_CPP:%.cpp=%.oo)
 all: ${TARGET_NAME}.bin
 
 ${TARGET_NAME}.bin: hal ${OBJS_C} ${OBJS_CXX}
-	${LD} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} ${LDFLAGS} -L${HAL}/bin/ -lam_hal -o ${TARGET_NAME}.axf 2> /dev/null 1> /dev/null
+	${LD} ${OBJS_C} ${OBJS_CXX} -T ${LD_SCRIPT} ${LDFLAGS} -L${HAL}/bin/ -lam_hal -o ${TARGET_NAME}.axf
 	${AXF2BIN} ${AXFFLAGS} ${TARGET_NAME}.axf ${TARGET_NAME}.bin
 	${SIZE} -A ${TARGET_NAME}.axf
 
