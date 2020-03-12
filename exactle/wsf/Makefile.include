@@ -1,0 +1,23 @@
+INCLUDE += -Iexactle/wsf/include/
+INCLUDE += -Iexactle/wsf/sources/util/
+INCLUDE += -Iexactle/wsf/sources/port/freertos/
+
+SOURCES += exactle/wsf/sources/port/freertos/wsf_assert.c
+SOURCES += exactle/wsf/sources/port/freertos/wsf_buf.c
+SOURCES += exactle/wsf/sources/port/freertos/wsf_efs.c
+SOURCES += exactle/wsf/sources/port/freertos/wsf_math.c
+SOURCES += exactle/wsf/sources/port/freertos/wsf_msg.c
+SOURCES += exactle/wsf/sources/port/freertos/wsf_os.c
+SOURCES += exactle/wsf/sources/port/freertos/wsf_queue.c
+SOURCES += exactle/wsf/sources/port/freertos/wsf_timer.c
+SOURCES += exactle/wsf/sources/port/freertos/wsf_trace.c
+SOURCES += exactle/wsf/sources/util/bda.c
+SOURCES += exactle/wsf/sources/util/bstream.c
+SOURCES += exactle/wsf/sources/util/calc128.c
+SOURCES += exactle/wsf/sources/util/crc32.c
+SOURCES += exactle/wsf/sources/util/print.c
+SOURCES += exactle/wsf/sources/util/terminal.c
+SOURCES += exactle/wsf/sources/util/wstr.c
+
+DEFINES += -DWSF_TRACE_ENABLED
+DEFINES += -DAM_DEBUG_PRINTF

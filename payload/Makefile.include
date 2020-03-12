@@ -1,0 +1,2 @@
+SOURCES += payload/main.cpp
+SOURCES += payload/rtos.cpp
