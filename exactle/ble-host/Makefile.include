@@ -1,0 +1,3 @@
+INCLUDE += -Iexactle/ble-host/include/
+
+include exactle/ble-host/sources/Makefile.include

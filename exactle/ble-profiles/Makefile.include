@@ -1,0 +1,1 @@
+INCLUDE += -Iexactle/ble-profiles/sources/services/

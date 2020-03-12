@@ -1,0 +1,6 @@
+INCLUDE += -Iexactle/ble-host/sources/stack/l2c/
+
+SOURCES += exactle/ble-host/sources/stack/l2c/l2c_coc.c
+SOURCES += exactle/ble-host/sources/stack/l2c/l2c_main.c
+SOURCES += exactle/ble-host/sources/stack/l2c/l2c_master.c
+SOURCES += exactle/ble-host/sources/stack/l2c/l2c_slave.c

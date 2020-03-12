@@ -1,0 +1,6 @@
+include exactle/ble-host/sources/stack/l2c/Makefile.include
+include exactle/ble-host/sources/stack/cfg/Makefile.include
+include exactle/ble-host/sources/stack/hci/Makefile.include
+include exactle/ble-host/sources/stack/dm/Makefile.include
+include exactle/ble-host/sources/stack/smp/Makefile.include
+include exactle/ble-host/sources/stack/att/Makefile.include

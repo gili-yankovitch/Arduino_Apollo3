@@ -1,0 +1,3 @@
+INCLUDE += -Iexactle/ble-host/sources/stack/cfg/
+
+SOURCES += exactle/ble-host/sources/stack/cfg/cfg_stack.c

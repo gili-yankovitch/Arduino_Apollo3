@@ -1,0 +1,17 @@
+INCLUDE += -Iexactle/ble-host/sources/stack/smp/
+
+SOURCES += exactle/ble-host/sources/stack/smp/smpi_act.c
+SOURCES += exactle/ble-host/sources/stack/smp/smpi_sc_act.c
+SOURCES += exactle/ble-host/sources/stack/smp/smpi_sc_sm.c
+SOURCES += exactle/ble-host/sources/stack/smp/smpi_sm.c
+SOURCES += exactle/ble-host/sources/stack/smp/smpr_act.c
+SOURCES += exactle/ble-host/sources/stack/smp/smpr_sc_act.c
+SOURCES += exactle/ble-host/sources/stack/smp/smpr_sc_sm.c
+SOURCES += exactle/ble-host/sources/stack/smp/smpr_sm.c
+SOURCES += exactle/ble-host/sources/stack/smp/smp_act.c
+SOURCES += exactle/ble-host/sources/stack/smp/smp_db.c
+SOURCES += exactle/ble-host/sources/stack/smp/smp_main.c
+SOURCES += exactle/ble-host/sources/stack/smp/smp_non.c
+SOURCES += exactle/ble-host/sources/stack/smp/smp_sc_act.c
+SOURCES += exactle/ble-host/sources/stack/smp/smp_sc_main.c
+

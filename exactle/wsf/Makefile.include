@@ -1,4 +1,5 @@
 INCLUDE += -Iexactle/wsf/include/
+INCLUDE += -Iexactle/wsf/sources/
 INCLUDE += -Iexactle/wsf/sources/util/
 INCLUDE += -Iexactle/wsf/sources/port/freertos/
 

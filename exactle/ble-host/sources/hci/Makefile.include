@@ -1,0 +1,15 @@
+INCLUDE += -Iexactle/ble-host/sources/hci/ambiq/
+INCLUDE += -Iexactle/ble-host/sources/hci/ambiq/apollo3/
+
+SOURCES += exactle/ble-host/sources/hci/ambiq/apollo3/hci_drv_apollo3.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_cmd.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_cmd_ae.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_cmd_cte.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_cmd_past.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_cmd_phy.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_core.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_core_ps.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_evt.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_tr.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_vs.c
+SOURCES += exactle/ble-host/sources/hci/ambiq/hci_vs_ae.c

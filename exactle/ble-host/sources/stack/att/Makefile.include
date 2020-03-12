@@ -1,0 +1,19 @@
+INCLUDE += -Iexactle/ble-host/sources/stack/att/
+
+SOURCES += exactle/ble-host/sources/stack/att/attc_disc.c
+SOURCES += exactle/ble-host/sources/stack/att/attc_main.c
+SOURCES += exactle/ble-host/sources/stack/att/attc_proc.c
+SOURCES += exactle/ble-host/sources/stack/att/attc_read.c
+SOURCES += exactle/ble-host/sources/stack/att/attc_sign.c
+SOURCES += exactle/ble-host/sources/stack/att/attc_write.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_ccc.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_csf.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_dyn.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_ind.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_main.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_proc.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_read.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_sign.c
+SOURCES += exactle/ble-host/sources/stack/att/atts_write.c
+SOURCES += exactle/ble-host/sources/stack/att/att_main.c
+SOURCES += exactle/ble-host/sources/stack/att/att_uuid.c
