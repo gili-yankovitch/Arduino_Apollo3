@@ -1,7 +1,28 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
-// #include "Arduino.h"
+/* BLE Includes */
+#include "wsf_types.h"
+#include "wsf_trace.h"
+#include "wsf_buf.h"
+#include "wsf_msg.h"
+
+#include "hci_handler.h"
+#include "dm_handler.h"
+#include "l2c_handler.h"
+#include "att_handler.h"
+#include "smp_handler.h"
+#include "l2c_api.h"
+#include "att_api.h"
+#include "smp_api.h"
+#include "app_api.h"
+#include "hci_core.h"
+#include "hci_drv.h"
+#include "hci_drv_apollo.h"
+#include "hci_drv_apollo3.h"
+
+#include "assettag/assettag_api.h"
+
 #include "ap3_initialization.h"
 
 #include <Arduino.h>
@@ -24,6 +45,17 @@ void *__dso_handle; // providing the __dso_handle symbol manually. Todo: more re
 
 ATECCX08A atecc;
 
+#define WSF_BUF_POOLS               4
+static uint32_t g_pui32BufMem[
+        (WSF_BUF_POOLS*16
+                 + 16*8 + 32*4 + 64*6 + 280*8) / sizeof(uint32_t)];
+static wsfBufPoolDesc_t g_psPoolDescriptors[WSF_BUF_POOLS] =
+{
+    {  16,  8 },
+    {  32,  4 },
+    {  64,  6 },
+    { 280,  8 }
+};
 static void printInfo()
 {
   // Read all 128 bytes of Configuration Zone
@@ -100,6 +132,86 @@ static void setup_task(void *pvParameters)
 	while (1) ;
 }
 
+//*****************************************************************************
+//
+// Initialization for the ExactLE stack.
+//
+//*****************************************************************************
+static void exactle_stack_init(void)
+{
+    wsfHandlerId_t handlerId;
+    uint16_t       wsfBufMemLen;
+
+    //
+    // Set up timers for the WSF scheduler.
+    //
+    //scheduler_timer_init();
+    WsfOsInit();
+    WsfTimerInit();
+
+    //
+    // Initialize a buffer pool for WSF dynamic memory needs.
+    //
+    wsfBufMemLen = WsfBufInit(sizeof(g_pui32BufMem), (uint8_t*)g_pui32BufMem, WSF_BUF_POOLS, g_psPoolDescriptors);
+
+    if (wsfBufMemLen > sizeof(g_pui32BufMem))
+    {
+        Serial.printf("Memory pool is too small by %d\r\n", wsfBufMemLen - sizeof(g_pui32BufMem));
+    }
+
+    //
+    // Initialize security.
+    //
+    SecInit();
+    SecAesInit();
+    SecCmacInit();
+    SecEccInit();
+
+    //
+    // Set up callback functions for the various layers of the ExactLE stack.
+    //
+    handlerId = WsfOsSetNextHandler(HciHandler);
+    HciHandlerInit(handlerId);
+
+    handlerId = WsfOsSetNextHandler(DmHandler);
+    DmDevVsInit(0);
+    DmAdvInit();
+    DmConnInit();
+    DmConnSlaveInit();
+    DmSecInit();
+    DmSecLescInit();
+    DmPrivInit();
+    DmHandlerInit(handlerId);
+
+    handlerId = WsfOsSetNextHandler(L2cSlaveHandler);
+    L2cSlaveHandlerInit(handlerId);
+    L2cInit();
+    L2cSlaveInit();
+
+    handlerId = WsfOsSetNextHandler(AttHandler);
+    AttHandlerInit(handlerId);
+    AttsInit();
+    AttsIndInit();
+    AttcInit();
+
+    handlerId = WsfOsSetNextHandler(SmpHandler);
+    SmpHandlerInit(handlerId);
+    SmprInit();
+    SmprScInit();
+    HciSetMaxRxAclLen(251);
+
+    handlerId = WsfOsSetNextHandler(AppHandler);
+    AppHandlerInit(handlerId);
+
+    handlerId = WsfOsSetNextHandler(AssetTagHandler);
+    AssetTagHandlerInit(handlerId);
+
+//    ButtonHandlerId = WsfOsSetNextHandler(button_handler);
+
+    handlerId = WsfOsSetNextHandler(HciDrvHandler);
+    HciDrvHandlerInit(handlerId);
+}
+
 extern "C" int main(void)
 {
   ap3_init();
@@ -110,6 +222,12 @@ extern "C" int main(void)
   // ap3_adc_setup();
 
   setup();
+
+  HciDrvRadioBoot(0);
+
+  exactle_stack_init();
+
+  AssetTagStart();
 
   xTaskCreate(setup_task, "Setup", 128, 0, 3, &xSetupTask);
 

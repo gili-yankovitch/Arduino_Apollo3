@@ -1,6 +1,33 @@
 INCLUDE += -Iexactle/ble-profiles/sources/services/
 INCLUDE += -Iexactle/ble-profiles/sources/profiles/
+INCLUDE += -Iexactle/ble-profiles/sources/apps/
 INCLUDE += -Iexactle/ble-profiles/sources/apps/app/
+
+SOURCES += exactle/ble-profiles/sources/apps/app/app_disc.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_main.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_master.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_master_ae.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_master_leg.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_server.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_slave.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_slave_ae.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_slave_leg.c
+SOURCES += exactle/ble-profiles/sources/apps/app/app_terminal.c
+SOURCES += exactle/ble-profiles/sources/apps/app/common/app_db.c
+SOURCES += exactle/ble-profiles/sources/apps/app/common/app_hw.c
+SOURCES += exactle/ble-profiles/sources/apps/app/common/app_ui.c
+SOURCES += exactle/ble-profiles/sources/apps/app/common/ui_console.c
+SOURCES += exactle/ble-profiles/sources/apps/app/common/ui_lcd.c
+SOURCES += exactle/ble-profiles/sources/apps/app/common/ui_main.c
+SOURCES += exactle/ble-profiles/sources/apps/app/common/ui_platform.c
+SOURCES += exactle/ble-profiles/sources/apps/app/common/ui_timer.c
+
+
+SOURCES += exactle/ble-profiles/sources/profiles/gatt/gatt_main.c
+SOURCES += exactle/ble-profiles/sources/services/svc_core.c
+
+SOURCES += exactle/ble-profiles/sources/services/svc_cte.c
+SOURCES += exactle/ble-profiles/sources/profiles/atps/atps_main.c
 
 SOURCES += exactle/ble-profiles/sources/services/svc_batt.c
 SOURCES += exactle/ble-profiles/sources/profiles/bas/bas_main.c

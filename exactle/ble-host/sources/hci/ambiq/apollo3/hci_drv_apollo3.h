@@ -46,6 +46,10 @@
 #ifndef HCI_DRV_APOLLO3_H
 #define HCI_DRV_APOLLO3_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 //*****************************************************************************
 //
 // NATIONZ vendor specific events
@@ -76,4 +80,7 @@ extern void HciDrvHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg);
 extern void HciDrvHandlerInit(wsfHandlerId_t handlerId);
 extern void HciDrvIntService(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif // HCI_DRV_APOLLO3_H
