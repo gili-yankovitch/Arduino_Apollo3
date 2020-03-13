@@ -40,6 +40,8 @@ typedef enum
 
 TwoWire::TwoWire(uint8_t iom_instance) : IOMaster(iom_instance)
 {
+	/* Reset member */
+	memset(&iomTransfer, 0, sizeof(am_hal_iom_transfer_t));
 	_transmissionBegun = false;
 	_pullups = AM_HAL_GPIO_PIN_PULLUP_1_5K; //Default
 	_clockSpeed = AM_HAL_IOM_100KHZ;

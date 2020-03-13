@@ -1,1 +1,7 @@
 INCLUDE += -Iexactle/ble-profiles/sources/services/
+INCLUDE += -Iexactle/ble-profiles/sources/profiles/
+INCLUDE += -Iexactle/ble-profiles/sources/apps/app/
+
+SOURCES += exactle/ble-profiles/sources/services/svc_batt.c
+SOURCES += exactle/ble-profiles/sources/profiles/bas/bas_main.c
+SOURCES += exactle/ble-profiles/sources/apps/assettag/assettag_main.c

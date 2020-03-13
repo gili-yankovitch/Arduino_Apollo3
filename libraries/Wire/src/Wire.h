@@ -69,7 +69,7 @@ public:
   void onService(void);
 
 private:
-  am_hal_iom_transfer_t iomTransfer = {0};
+  am_hal_iom_transfer_t iomTransfer;
   ap3_gpio_pin_t _padSDA;
   ap3_gpio_pin_t _padSCL;
 

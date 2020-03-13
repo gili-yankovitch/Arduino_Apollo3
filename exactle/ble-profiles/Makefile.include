@@ -1,3 +1,3 @@
-INCLUDE += -Iexactle/ble-profiles/sources/services/
+INCLUDE += -Iexactle/ble-profiles/include/app/
 
 include exactle/ble-profiles/sources/Makefile.include
