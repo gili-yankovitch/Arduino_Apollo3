@@ -1,0 +1,3 @@
+[submodule "libraries/ATECCX08a"]
+	path = libraries/ATECCX08a
+	url = git@github.com:gili-yankovitch/SparkFun_ATECCX08a_Arduino_Library.git
