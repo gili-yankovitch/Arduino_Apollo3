@@ -1,2 +1,5 @@
-SOURCES += payload/main.cpp
-SOURCES += payload/rtos.cpp
+#SOURCES += payload/main.cpp
+SOURCES += payload/ble_freertos_tag.c
+SOURCES += payload/radio_task.c
+SOURCES += payload/rtos.c
+SOURCES += payload/t.cpp

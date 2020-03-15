@@ -1352,7 +1352,6 @@ am_hal_iom_initialize(uint32_t ui32Module, void **ppHandle)
     g_IOMhandles[ui32Module].prefix.s.bInit = true;
     g_IOMhandles[ui32Module].prefix.s.bEnable = false;
     g_IOMhandles[ui32Module].prefix.s.magic = AM_HAL_MAGIC_IOM;
-
     //
     // Initialize the handle.
     //
@@ -1362,7 +1361,7 @@ am_hal_iom_initialize(uint32_t ui32Module, void **ppHandle)
     // Return the handle.
     //
     *ppHandle = (void *)&g_IOMhandles[ui32Module];
-
+	
     //
     // Return the status
     //
@@ -2114,6 +2113,7 @@ am_hal_iom_configure(void *pHandle, am_hal_iom_config_t *psConfig)
          (psConfig == NULL)     ||
          (pIOMState->ui32Module >= AM_REG_IOM_NUM_MODULES) )
     {
+    	return 42;
         return AM_HAL_STATUS_INVALID_ARG;
     }
     // Configure not allowed in Enabled state
@@ -2144,10 +2144,12 @@ am_hal_iom_configure(void *pHandle, am_hal_iom_config_t *psConfig)
         //
         if ( psConfig->eSpiMode > AM_HAL_IOM_SPI_MODE_3 )
         {
+        	return 43;
             return AM_HAL_STATUS_INVALID_ARG;
         }
         if (psConfig->ui32ClockFreq > AM_HAL_IOM_MAX_FREQ)
         {
+        	return 44;
             return AM_HAL_STATUS_INVALID_ARG;
         }
 #endif // AM_HAL_DISABLE_API_VALIDATION
@@ -2240,6 +2242,7 @@ am_hal_iom_configure(void *pHandle, am_hal_iom_config_t *psConfig)
                                             _VAL2FLD(IOM0_MI2CCFG_ADDRSZ, IOM0_MI2CCFG_ADDRSZ_ADDRSZ7);
                 break;
             default:
+            	return 45;
                 return AM_HAL_STATUS_INVALID_ARG;
         }
 
@@ -2353,6 +2356,7 @@ am_hal_iom_blocking_transfer(void *pHandle,
     //
     // Make sure any previous non-blocking transfers have completed.
     //
+    //am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
     ui32Status = am_hal_flash_delay_status_check(pIOMState->waitTimeout,
                                                  (uint32_t)&pIOMState->ui32NumPendTransactions,
                                                  0xFFFFFFFF,
@@ -2360,7 +2364,7 @@ am_hal_iom_blocking_transfer(void *pHandle,
                                                  true);
     if ( ui32Status != AM_HAL_STATUS_SUCCESS )
     {
-        return ui32Status;
+        return ui32Status | 1;
     }
 
     //

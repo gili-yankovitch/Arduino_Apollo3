@@ -49,6 +49,14 @@ TwoWire::TwoWire(uint8_t iom_instance) : IOMaster(iom_instance)
 
 void TwoWire::begin(void)
 {
+	/* Reset member */
+	_instance = AP3_Wire_IOM;
+	_handle = NULL;
+	memset(&iomTransfer, 0, sizeof(am_hal_iom_transfer_t));
+	_transmissionBegun = false;
+	_pullups = AM_HAL_GPIO_PIN_PULLUP_1_5K; //Default
+	_clockSpeed = AM_HAL_IOM_100KHZ;
+
 	//Master Mode
 
 	am_hal_gpio_pincfg_t pincfg = AP3_GPIO_DEFAULT_PINCFG;
@@ -93,6 +101,8 @@ void TwoWire::begin(void)
 	memset((void *)&_config, 0x00, sizeof(am_hal_iom_config_t)); // Set the IOM configuration
 	_config.eInterfaceMode = AM_HAL_IOM_I2C_MODE;
 	_config.ui32ClockFreq = _clockSpeed;
+
+	am_util_debug_printf("Clock speed: %u\r\n", _config.ui32ClockFreq);
 
 	//Setup defaults that do not change
 	iomTransfer.ui32InstrLen = 0; // Use only data phase
@@ -152,6 +162,7 @@ uint8_t TwoWire::requestFrom(uint8_t address, size_t quantity, bool stopBit)
 	{
 		return 0;
 	}
+
 	size_t byteRead = 0;
 	_rxBuffer.clear();
 
@@ -170,8 +181,10 @@ uint8_t TwoWire::requestFrom(uint8_t address, size_t quantity, bool stopBit)
 	iomTransfer.ui32StatusSetClr = 0;   // ?
 
 	uint32_t retVal32 = am_hal_iom_blocking_transfer(_handle, &iomTransfer);
+	// uint32_t retVal32 = am_hal_iom_nonblocking_transfer(_handle, &iomTransfer, NULL, NULL);
 	if (retVal32 != 0)
 	{
+		am_util_debug_printf("%s::%d blocking err = %u\r\n", __FILE__, __LINE__, retVal32);
 		// Serial.println("got an error on requestFrom");
 		return retVal32;
 	}
@@ -264,15 +277,34 @@ size_t TwoWire::write(const uint8_t *data, size_t quantity)
 	return quantity; //All data stored
 }
 
+int TwoWire::available2(void)
+{
+	return _rxBuffer.available();
+}
+
 int TwoWire::available(void)
 {
 	return _rxBuffer.available();
 }
 
-int TwoWire::read(void)
+int TwoWire::read2(void)
 {
+	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
 	return _rxBuffer.read_char();
 }
+
+int TwoWire::read(void)
+{
+	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
+	return _rxBuffer.read_char();
+}
+
+int TwoWire::peek2(void)
+{
+	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
+	return _rxBuffer.peek();
+}
+
 
 int TwoWire::peek(void)
 {

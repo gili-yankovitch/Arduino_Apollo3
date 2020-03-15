@@ -129,7 +129,7 @@ void WsfTrace(const char *pStr, ...)
   ui32NumChars = am_util_debug_printf(pTraceMsg);
   if (!(ui32NumChars < AM_PRINTF_BUFSIZE))
     WsfAssert(__FILE__, (uint16_t) __LINE__);
-  am_util_debug_printf("\n");
+  am_util_debug_printf("\r\n");
 }
 
 #elif WSF_TOKEN_ENABLED == TRUE

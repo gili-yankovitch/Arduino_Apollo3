@@ -30,6 +30,7 @@ IOMaster::IOMaster(uint8_t instance)
 
 ap3_err_t IOMaster::initialize(void)
 {
+	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__)
     return initialize(_config);
 }
 
@@ -43,32 +44,42 @@ ap3_err_t IOMaster::initialize(am_hal_iom_config_t config)
         deinitialize();
     }
 
+	am_util_debug_printf("%s::%d _instance = %d\r\n", __FILE__, __LINE__, _instance);
     retVal32 = am_hal_iom_initialize(_instance, &_handle);
     if (retVal32 != AM_HAL_STATUS_SUCCESS)
     {
+    	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
         return AP3_ERR;
     }
 
     retVal32 = am_hal_iom_power_ctrl(_handle, AM_HAL_SYSCTRL_WAKE, false);
     if (retVal32 != AM_HAL_STATUS_SUCCESS)
     {
+    	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
         return AP3_ERR;
     }
+
+    am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
 
     retVal32 = am_hal_iom_configure(_handle, &_config);
     if (retVal32 != AM_HAL_STATUS_SUCCESS)
     {
+    	am_util_debug_printf("%s::%d Clock speed = %u retVal = %u\r\n", __FILE__, __LINE__, _config.ui32ClockFreq, retVal32);
         return AP3_ERR;
     }
+
+    am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
 
     retVal32 = am_hal_iom_enable(_handle);
     if (retVal32 != AM_HAL_STATUS_SUCCESS)
     {
+    	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
         return AP3_ERR;
     }
 
-    // Configure the IOM pins. (Must be done by the inherited classes [this is just a reminder])
+    am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
 
+    // Configure the IOM pins. (Must be done by the inherited classes [this is just a reminder])
     return AP3_OK;
 }
 

@@ -58,7 +58,7 @@ uint8_t WsfTokenIOWrite(uint8_t *pBuf, uint8_t len);
   __WSF_TOKEN_DEFINE__(                                 \
     /* token:   */     MODULE_ID, __LINE__,             \
     /* origin:  */     __FILE__, subsys,                \
-    /* message: */     stat, msg)
+    /* message: */     stat, msg "\r\n")
 
 #define WSF_TRACE0(subsys, stat, msg)                   WSF_TOKEN(subsys, stat, msg)
 #define WSF_TRACE1(subsys, stat, msg, var1)             WSF_TOKEN(subsys, stat, msg)

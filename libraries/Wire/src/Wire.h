@@ -53,6 +53,10 @@ public:
   size_t write(uint8_t data);
   size_t write(const uint8_t *data, size_t quantity);
 
+  int available2(void);
+  int read2(void);
+  int peek2(void);
+
   virtual int available(void);
   virtual int read(void);
   virtual int peek(void);

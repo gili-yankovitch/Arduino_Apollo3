@@ -22,6 +22,9 @@
  */
 /*************************************************************************************************/
 
+#include <am_bsp.h>
+#include <am_util_debug.h>
+
 #include <string.h>
 #include "wsf_types.h"
 #include "util/bstream.h"
@@ -561,6 +564,7 @@ void AssetTagHandlerInit(wsfHandlerId_t handlerId)
 /*************************************************************************************************/
 void AssetTagHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 {
+  // am_bsp_uart_string_print("In AssetTagHandler\r\n");
   if (pMsg != NULL)
   {
     APP_TRACE_INFO1("AssetTag got evt %d", pMsg->event);
@@ -598,6 +602,8 @@ void AssetTagHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 /*************************************************************************************************/
 void AssetTagStart(void)
 {
+  //am_bsp_uart_string_print("In AssetTagStart()\r\n");
+
   /* Register for stack callbacks */
   DmRegister(assetTagDmCback);
   DmConnRegister(DM_CLIENT_ID_APP, assetTagDmCback);

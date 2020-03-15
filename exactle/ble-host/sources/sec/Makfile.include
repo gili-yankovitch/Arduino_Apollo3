@@ -1,0 +1,10 @@
+INCLUDE += -Iexactle/ble-host/sources/sec/uecc/
+
+SOURCES += exactle/ble-host/sources/sec/uecc/sec_ecc.c
+SOURCES += exactle/ble-host/sources/sec/common/sec_aes.c
+SOURCES += exactle/ble-host/sources/sec/common/sec_aes_rev.c
+SOURCES += exactle/ble-host/sources/sec/common/sec_ccm_hci.c
+SOURCES += exactle/ble-host/sources/sec/common/sec_cmac_hci.c
+SOURCES += exactle/ble-host/sources/sec/common/sec_ecc_debug.c
+SOURCES += exactle/ble-host/sources/sec/common/sec_ecc_hci.c
+SOURCES += exactle/ble-host/sources/sec/common/sec_main.c
