@@ -21,7 +21,7 @@
  *  limitations under the License.
  */
 /*************************************************************************************************/
-
+#include <am_util_debug.h>
 #include <string.h>
 #include "wsf_types.h"
 #include "wsf_msg.h"
@@ -89,12 +89,14 @@ static void appDiscCfgStart(dmConnId_t connId, uint8_t status)
   /* if configuration not complete */
   if (status < APP_DISC_CFG_CMPL)
   {
+    am_util_debug_printf("Received Configuration Start\r\n");
     /* notify application to start configuration */
     (*appDiscCback)(connId, APP_DISC_CFG_START);
   }
   /* else if configuration complete start connection setup configuration */
   else if (status == APP_DISC_CFG_CMPL && pAppDiscCb->connCfgStatus == APP_DISC_INIT)
   {
+    am_util_debug_printf("Received Configuratio Complete during Discovery Init\r\n");
     (*appDiscCback)(connId, APP_DISC_CFG_CONN_START);
   }
 }
@@ -498,16 +500,19 @@ void AppDiscProcAttMsg(attEvt_t *pMsg)
   {
     if (pMsg->hdr.event == ATTC_READ_BY_TYPE_RSP)
     {
+      APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
       dmConnId_t connId = (dmConnId_t)pMsg->hdr.param;
 
       if (pMsg->hdr.status != ATT_SUCCESS)
       {
+        APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
         /* No Database hash found on peer, notify application to start discovery */
         (*appDiscCback)(connId, APP_DISC_START);
       }
       else
       {
         appDbHdl_t hdl;
+        APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
 
         pAppDiscCb->inProgress = APP_DISC_IDLE;
 
@@ -516,6 +521,7 @@ void AppDiscProcAttMsg(attEvt_t *pMsg)
          */
         if ((hdl = AppDbGetHdl(connId)) == APP_DB_HDL_NONE)
         {
+          APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
           hdl = appConnCb[connId - 1].dbHdl = AppDbNewRecord(DmConnPeerAddrType(connId),
                                                              DmConnPeerAddr(connId), 
                                                              (DmConnRole(connId)==DM_ROLE_MASTER)?TRUE:FALSE);
@@ -526,6 +532,7 @@ void AppDiscProcAttMsg(attEvt_t *pMsg)
          */
         if (memcmp(AppDbGetPeerDbHash(hdl), pMsg->pValue + 3, ATT_DATABASE_HASH_LEN))
         {
+          APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
           /* The new hash is different.  Store it. */
           AppDbSetPeerDbHash(hdl, pMsg->pValue + 3);
 
@@ -774,13 +781,19 @@ void AppDiscFindService(dmConnId_t connId, uint8_t uuidLen, uint8_t *pUuid, uint
 {
   appDiscCb_t *pAppDiscCb = &appDiscCb[connId - 1];
 
+  APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
+
   if (pAppDiscCb->pDiscCb == NULL)
   {
+    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
+
     pAppDiscCb->pDiscCb = WsfBufAlloc(sizeof(attcDiscCb_t));
   }
 
   if (pAppDiscCb->pDiscCb != NULL)
   {
+    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
+
     /* set connection as busy */
     DmConnSetIdle(connId, DM_IDLE_APP_DISC, DM_CONN_BUSY);
 
@@ -790,6 +803,8 @@ void AppDiscFindService(dmConnId_t connId, uint8_t uuidLen, uint8_t *pUuid, uint
     pAppDiscCb->pDiscCb->pHdlList = pHdlList;
     pAppDiscCb->pDiscCb->charListLen = listLen;
     AttcDiscService(connId, pAppDiscCb->pDiscCb, uuidLen, pUuid);
+
+    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
   }
 }
 

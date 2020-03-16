@@ -26,6 +26,7 @@
 #include "wsf_types.h"
 #include "wsf_msg.h"
 #include "wsf_timer.h"
+#include "wsf_trace.h"
 #include "wsf_assert.h"
 #include "util/calc128.h"
 #include "dm_api.h"
@@ -1088,6 +1089,8 @@ void AppSlaveInit(void)
 void AppSlaveProcDmMsg(dmEvt_t *pMsg)
 {
   appConnCb_t *pCb = NULL;
+
+  APP_TRACE_INFO3("%s::%d event = %d", __FILE__, __LINE__, pMsg->hdr.event);
 
   /* look up app connection control block from DM connection ID */
   if ((pMsg->hdr.event != DM_ADV_STOP_IND) &&

@@ -226,6 +226,7 @@ uint8_t TwoWire::endTransmission(bool stopBit)
 	{
 		return 1; // data too long
 	}
+
 	while (_txBuffer.available())
 	{
 		*(_linearBugger + count++) = _txBuffer.read_char();
@@ -254,6 +255,19 @@ uint8_t TwoWire::endTransmission(bool stopBit)
 	}
 }
 
+size_t TwoWire::write_byte(uint8_t ucData)
+{
+	// No writing, without begun transmission or a full buffer
+	if (!_transmissionBegun || _txBuffer.isFull())
+	{
+		return 0;
+	}
+
+	_txBuffer.store_char(ucData);
+
+	return 1;
+}
+
 size_t TwoWire::write(uint8_t ucData)
 {
 	// No writing, without begun transmission or a full buffer
@@ -263,6 +277,19 @@ size_t TwoWire::write(uint8_t ucData)
 	}
 	_txBuffer.store_char(ucData);
 	return 1;
+}
+
+size_t TwoWire::write2(const uint8_t *data, size_t quantity)
+{
+
+	for (size_t i = 0; i < quantity; ++i)
+	{ //Try to store all data
+		if (!write_byte(data[i]))
+		{ //Return the number of data stored, when the buffer is full (if write return 0)
+			return i;
+		}
+	}
+	return quantity; //All data stored
 }
 
 size_t TwoWire::write(const uint8_t *data, size_t quantity)
@@ -289,7 +316,6 @@ int TwoWire::available(void)
 
 int TwoWire::read2(void)
 {
-	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
 	return _rxBuffer.read_char();
 }
 
@@ -304,7 +330,6 @@ int TwoWire::peek2(void)
 	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
 	return _rxBuffer.peek();
 }
-
 
 int TwoWire::peek(void)
 {

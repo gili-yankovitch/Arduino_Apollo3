@@ -87,20 +87,24 @@ static struct
 /*! configurable parameters for advertising */
 static const appAdvCfg_t tagAdvCfg =
 {
+  {60000,     0,     0},                  /*! Advertising durations in ms */
+  {  800,   800,     0}                   /*! Advertising intervals in 0.625 ms units */
+#if 0
   {15000, 45000,     0},                  /*! Advertising durations in ms */
   {   56,   640,  1824}                   /*! Advertising intervals in 0.625 ms units */
+#endif
 };
 
 /*! configurable parameters for slave */
 static const appSlaveCfg_t tagSlaveCfg =
 {
-  1,                                      /*! Maximum connections */
+  42, //1,                                      /*! Maximum connections */
 };
 
 /*! configurable parameters for security */
 static const appSecCfg_t tagSecCfg =
 {
-  DM_AUTH_BOND_FLAG,                      /*! Authentication and bonding flags */
+  DM_AUTH_BOND_FLAG | DM_AUTH_SC_FLAG,                      /*! Authentication and bonding flags */
   DM_KEY_DIST_IRK,                        /*! Initiator key distribution flags */
   DM_KEY_DIST_LTK | DM_KEY_DIST_IRK,      /*! Responder key distribution flags */
   FALSE,                                  /*! TRUE if Out-of-band pairing data is present */
@@ -112,8 +116,8 @@ static const appUpdateCfg_t tagUpdateCfg =
 {
   6000,                                   /*! Connection idle period in ms before attempting
                                               connection parameter update; set to zero to disable */
-  640,                                    /*! Minimum connection interval in 1.25ms units */
-  800,                                    /*! Maximum connection interval in 1.25ms units */
+  6, //640,                                    /*! Minimum connection interval in 1.25ms units */
+  16, //800,                                    /*! Maximum connection interval in 1.25ms units */
   0,                                      /*! Connection latency */
   600,                                    /*! Supervision timeout in 10ms units */
   5                                       /*! Number of update attempts before giving up */
@@ -162,7 +166,7 @@ static const uint8_t tagAdvDataDisc[] =
   /*! flags */
   2,                                      /*! length */
   DM_ADV_TYPE_FLAGS,                      /*! AD type */
-  DM_FLAG_LE_LIMITED_DISC |               /*! flags */
+  DM_FLAG_LE_GENERAL_DISC | //DM_FLAG_LE_LIMITED_DISC |               /*! flags */
   DM_FLAG_LE_BREDR_NOT_SUP,
 
   /*! tx power */
@@ -170,12 +174,19 @@ static const uint8_t tagAdvDataDisc[] =
   DM_ADV_TYPE_TX_POWER,                   /*! AD type */
   0,                                      /*! tx power */
 
+  /*! service UUID list */
+  7,                                      /*! length */
+  DM_ADV_TYPE_16_UUID,                    /*! AD type */
+  UINT16_TO_BYTES(ATT_UUID_LINK_LOSS_SERVICE),
+  UINT16_TO_BYTES(ATT_UUID_IMMEDIATE_ALERT_SERVICE),
+  UINT16_TO_BYTES(ATT_UUID_TX_POWER_SERVICE),
+
   /*! device name */
   4,                                      /*! length */
   DM_ADV_TYPE_LOCAL_NAME,                 /*! AD type */
-  'T',
-  'a',
-  'g'
+  'L',
+  'O',
+  'L'
 };
 
 /*! scan data */
@@ -318,6 +329,8 @@ static void tagDmCback(dmEvt_t *pDmEvt)
   dmEvt_t *pMsg;
   uint16_t  len;
 
+  ATT_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
+
   if (pDmEvt->hdr.event == DM_SEC_ECC_KEY_IND)
   {
     DmSecSetEccKey(&pDmEvt->eccMsg.data.key);
@@ -347,10 +360,13 @@ static void tagAttCback(attEvt_t *pEvt)
 {
   attEvt_t *pMsg;
 
+  ATT_TRACE_INFO3("%s::%d valueLen = %u", __FILE__, __LINE__, pEvt->valueLen);
+
   if ((pMsg = WsfMsgAlloc(sizeof(attEvt_t) + pEvt->valueLen)) != NULL)
   {
     memcpy(pMsg, pEvt, sizeof(attEvt_t));
     pMsg->pValue = (uint8_t *) (pMsg + 1);
+    pMsg->valueLen = pEvt->valueLen;
     memcpy(pMsg->pValue, pEvt->pValue, pEvt->valueLen);
     WsfMsgSend(tagCb.handlerId, pMsg);
   }
@@ -371,6 +387,8 @@ static void tagCccCback(attsCccEvt_t *pEvt)
 {
   attsCccEvt_t  *pMsg;
   appDbHdl_t    dbHdl;
+
+  ATT_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
 
   /* If CCC not set from initialization and there's a device record and currently bonded */
   if ((pEvt->handle != ATT_HANDLE_NONE) &&
@@ -793,24 +811,25 @@ static void tagBtnCback(uint8_t btn)
 /*************************************************************************************************/
 static void tagDiscCback(dmConnId_t connId, uint8_t status)
 {
+  ATT_TRACE_INFO3("%s:%d stats = %d", __FILE__, __LINE__, status);
   switch(status)
   {
-    case APP_DISC_INIT:
+    case APP_DISC_INIT: /* 0 */
       /* set handle list when initialization requested */
       AppDiscSetHdlList(connId, TAG_DISC_HDL_LIST_LEN, tagCb.hdlList);
       break;
 
-    case APP_DISC_READ_DATABASE_HASH:
+    case APP_DISC_READ_DATABASE_HASH: /* 1 */
       /* Read peer's database hash */
       AppDiscReadDatabaseHash(connId);
       break;
 
-    case APP_DISC_SEC_REQUIRED:
+    case APP_DISC_SEC_REQUIRED: /* 2 */
       /* request security */
       AppSlaveSecurityReq(connId);
       break;
 
-    case APP_DISC_START:
+    case APP_DISC_START: /* 3 */
       /* initialize discovery state */
       tagCb.discState = TAG_DISC_IAS_SVC;
 
@@ -818,7 +837,7 @@ static void tagDiscCback(dmConnId_t connId, uint8_t status)
       FmplIasDiscover(connId, pTagIasHdlList);
       break;
 
-    case APP_DISC_FAILED:
+    case APP_DISC_FAILED: /* 5 */
       if (pAppCfg->abortDisc)
       {
         /* if immediate alert service not found */
@@ -831,7 +850,7 @@ static void tagDiscCback(dmConnId_t connId, uint8_t status)
       }
       /* Else falls through. */
 
-    case APP_DISC_CMPL:
+    case APP_DISC_CMPL: /* 4 */
       /* next discovery state */
       tagCb.discState++;
 
@@ -891,18 +910,23 @@ static void tagProcMsg(dmEvt_t *pMsg)
 {
   uint8_t uiEvent = APP_UI_NONE;
 
+  APP_TRACE_INFO3("%s::%d hdr->event = %d", __FILE__, __LINE__, pMsg->hdr.event);
+
   switch(pMsg->hdr.event)
   {
     case ATTC_READ_RSP:
     case ATTC_HANDLE_VALUE_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       tagValueUpdate((attEvt_t *) pMsg);
       break;
 
     case ATT_MTU_UPDATE_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       APP_TRACE_INFO1("Negotiated MTU %d", ((attEvt_t *)pMsg)->mtu);
       break;  
 
     case DM_RESET_CMPL_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       AttsCalculateDbHash();
       DmSecGenerateEccKeyReq();
       tagSetup(pMsg);
@@ -910,66 +934,81 @@ static void tagProcMsg(dmEvt_t *pMsg)
       break;
 
     case DM_ADV_START_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       uiEvent = APP_UI_ADV_START;
       break;
 
     case DM_ADV_STOP_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       uiEvent = APP_UI_ADV_STOP;
       break;
 
     case DM_CONN_OPEN_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       tagOpen(pMsg);
       uiEvent = APP_UI_CONN_OPEN;
       break;
 
     case DM_CONN_CLOSE_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       tagClose(pMsg);
       uiEvent = APP_UI_CONN_CLOSE;
       break;
 
     case DM_SEC_PAIR_CMPL_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       tagSecPairCmpl(pMsg);
       DmSecGenerateEccKeyReq();
       uiEvent = APP_UI_SEC_PAIR_CMPL;
       break;
 
     case DM_SEC_PAIR_FAIL_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       DmSecGenerateEccKeyReq();
       uiEvent = APP_UI_SEC_PAIR_FAIL;
       break;
 
     case DM_SEC_ENCRYPT_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       uiEvent = APP_UI_SEC_ENCRYPT;
       break;
 
     case DM_SEC_ENCRYPT_FAIL_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       uiEvent = APP_UI_SEC_ENCRYPT_FAIL;
       break;
 
     case DM_SEC_AUTH_REQ_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       AppHandlePasskey(&pMsg->authReq);
       break;
 
     case DM_SEC_COMPARE_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       AppHandleNumericComparison(&pMsg->cnfInd);
       break;
 
     case DM_PRIV_ADD_DEV_TO_RES_LIST_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       tagPrivAddDevToResListInd(pMsg);
       break;
 
     case DM_PRIV_REM_DEV_FROM_RES_LIST_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       tagPrivRemDevFromResListInd(pMsg);
       break;
 
     case DM_ADV_NEW_ADDR_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       break;
 
     case TAG_RSSI_TIMER_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       tagProcRssiTimer(pMsg);
       break;
 
     case DM_CONN_READ_RSSI_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       /* if successful */
       if (pMsg->hdr.status == HCI_SUCCESS)
       {
@@ -979,11 +1018,13 @@ static void tagProcMsg(dmEvt_t *pMsg)
       break;
 
     case DM_PRIV_CLEAR_RES_LIST_IND:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       APP_TRACE_INFO1("Clear resolving list status 0x%02x", pMsg->hdr.status);
       break;
 
     case DM_VENDOR_SPEC_CMD_CMPL_IND:
       {
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
         #if defined(AM_PART_APOLLO) || defined(AM_PART_APOLLO2)
        
           uint8_t *param_ptr = &pMsg->vendorSpecCmdCmpl.param[0];
@@ -1015,6 +1056,7 @@ static void tagProcMsg(dmEvt_t *pMsg)
       break;
 	  
     default:
+      APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
       break;
   }
 
@@ -1079,11 +1121,14 @@ void TagHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 {
   if (pMsg != NULL)
   {
-    APP_TRACE_INFO1("Tag got evt %d", pMsg->event);
+
+    APP_TRACE_INFO3("%s::%d event = %d", __FILE__, __LINE__, pMsg->event);
 
     /* process ATT messages */
     if (pMsg->event <= ATT_CBACK_END)
     {
+      APP_TRACE_INFO3("%s::%d event = %d", __FILE__, __LINE__, pMsg->event);
+
       /* process discovery-related ATT messages */
       AppDiscProcAttMsg((attEvt_t *) pMsg);
 
@@ -1093,6 +1138,8 @@ void TagHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
     /* process DM messages */
     else if (pMsg->event <= DM_CBACK_END)
     {
+      APP_TRACE_INFO3("%s::%d event = %d", __FILE__, __LINE__, pMsg->event);
+
       /* process advertising and connection-related messages */
       AppSlaveProcDmMsg((dmEvt_t *) pMsg);
 

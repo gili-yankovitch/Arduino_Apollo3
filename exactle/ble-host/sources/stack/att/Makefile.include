@@ -6,6 +6,7 @@ SOURCES += exactle/ble-host/sources/stack/att/attc_proc.c
 SOURCES += exactle/ble-host/sources/stack/att/attc_read.c
 SOURCES += exactle/ble-host/sources/stack/att/attc_sign.c
 SOURCES += exactle/ble-host/sources/stack/att/attc_write.c
+
 SOURCES += exactle/ble-host/sources/stack/att/atts_ccc.c
 SOURCES += exactle/ble-host/sources/stack/att/atts_csf.c
 SOURCES += exactle/ble-host/sources/stack/att/atts_dyn.c

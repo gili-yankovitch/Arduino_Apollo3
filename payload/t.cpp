@@ -9,15 +9,14 @@ extern "C" void serial_print()
 {
 	Wire.begin();
 
-	am_util_debug_printf("%s::%d\r\n", __FILE__, __LINE__);
-	if (atecc.begin())
-		am_util_debug_printf("Successful wakeUp(). I2C connections are good.\r\n");
-#if 0
-	if (atecc.begin() == true)
-	{
-	}
+	if (!atecc.begin())
+		am_util_debug_printf("Failed initializing I2C\r\n");
+
+	am_util_debug_printf("Successful wakeUp(). I2C connections are good.\r\n");
 
 	atecc.readConfigZone(false); // Debug argument false (OFF)
+
+	am_util_debug_printf("Serial: ");
 
 	for (int i = 0 ; i < 9 ; i++)
 	{
@@ -26,5 +25,6 @@ extern "C" void serial_print()
 
 		am_util_debug_printf("%x", atecc.serialNumber[i]);
 	}
-#endif
+
+	am_util_debug_printf("\r\n");
 }

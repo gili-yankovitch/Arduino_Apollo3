@@ -432,6 +432,7 @@ void attsProcessDatabaseHashUpdate(secCmacMsg_t *pMsg)
   /* set hash update complete */
   attsCsfSetHashUpdateStatus(FALSE);
 
+  APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
   attCb.cback(&evt);
 }
 

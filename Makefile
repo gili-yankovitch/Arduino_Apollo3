@@ -22,6 +22,8 @@ FABI = hard
 # ##### SERIAL PORT ##### #
 SERIAL_PORT = /dev/ttyUSB0
 BAUD_RATE = 115200
+BAUD_RATE = 230400
+BAUD_RATE = 460800
 
 # ##### BUILD FLAGS ##### #
 INCLUDE =

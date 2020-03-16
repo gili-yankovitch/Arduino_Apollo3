@@ -28,6 +28,7 @@ SOURCES += exactle/ble-profiles/sources/profiles/gatt/gatt_main.c
 SOURCES += exactle/ble-profiles/sources/services/svc_core.c
 SOURCES += exactle/ble-profiles/sources/services/svc_px.c
 
+SOURCES += exactle/ble-profiles/sources/services/svc_dis.c
 
 #SOURCES += exactle/ble-profiles/sources/services/svc_cte.c
 #SOURCES += exactle/ble-profiles/sources/profiles/atps/atps_main.c
