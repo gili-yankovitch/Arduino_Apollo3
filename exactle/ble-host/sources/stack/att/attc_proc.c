@@ -95,7 +95,6 @@ void attcProcErrRsp(attcCcb_t *pCcb, uint16_t len, uint8_t *pPacket, attEvt_t *p
 
   /* set status from error code in packet, but verify it's not 'success' */
   BSTREAM_TO_UINT8(pEvt->hdr.status, p);
-  APP_TRACE_INFO3("%s:%d status = %u", __FILE__, __LINE__, pEvt->hdr.status);
   if (pEvt->hdr.status == ATT_SUCCESS)
   {
     pEvt->hdr.status = ATT_ERR_UNDEFINED;
@@ -324,11 +323,8 @@ void attcProcRsp(attcCcb_t *pCcb, uint16_t len, uint8_t *pPacket)
   evt.valueLen = len - ATT_HDR_LEN;
   evt.handle = pCcb->outReq.handle;
   evt.hdr.status = ATT_SUCCESS;
-    APP_TRACE_INFO1("evt.hdr.event = %d", evt.hdr.event);
-    APP_TRACE_INFO3("Len = %u HDR_LEN = %u Calc: %u", len, ATT_HDR_LEN, evt.valueLen);
   (*attcProcRspTbl[evt.hdr.event])(pCcb, len, pPacket, &evt);
 
-    APP_TRACE_INFO3("Len = %u HDR_LEN = %u Calc: %u", len, ATT_HDR_LEN, evt.valueLen);
   /* if not continuing or status is not success */
   if ((pCcb->outReq.hdr.status == ATTC_NOT_CONTINUING) || (evt.hdr.status != ATT_SUCCESS))
   {
@@ -337,15 +333,12 @@ void attcProcRsp(attcCcb_t *pCcb, uint16_t len, uint8_t *pPacket)
     attcFreePkt(&pCcb->outReq);
   }
 
-  APP_TRACE_INFO3("Len = %u HDR_LEN = %u Calc: %u", len, ATT_HDR_LEN, evt.valueLen);
   /* call callback (if not mtu rsp) */
   if ((evt.hdr.event != ATT_METHOD_MTU) && attCb.cback)
   {
     /* set additional parameters and call callback */
     evt.continuing = pCcb->outReq.hdr.status;   /* continuing flag */
     evt.hdr.param = pCcb->outReq.hdr.param;     /* connId */
-    APP_TRACE_INFO3("Len = %u HDR_LEN = %u Calc: %u", len, ATT_HDR_LEN, evt.valueLen);
-    APP_TRACE_INFO3("%s:%d %u", __FILE__, __LINE__, evt.valueLen);
     (*attCb.cback)(&evt);
   }
 

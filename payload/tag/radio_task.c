@@ -392,7 +392,6 @@ RadioTask(void *pvParameters)
     //
     TagStart();
 
-    am_util_debug_printf("Print here ok?\r\n");
     serial_print();
 
     while (1)

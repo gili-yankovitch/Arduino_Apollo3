@@ -54,7 +54,7 @@ static const uint8_t svcTxPwrUuid[ATT_16_UUID_LEN] = {UINT16_TO_BYTES(ATT_UUID_T
 /**************************************************************************************************
  Service variables
 **************************************************************************************************/
-
+#if 0
 /* Link loss service declaration */
 static const uint8_t llsValSvc[] = {UINT16_TO_BYTES(ATT_UUID_LINK_LOSS_SERVICE)};
 static const uint16_t llsLenSvc = sizeof(llsValSvc);
@@ -66,7 +66,9 @@ static const uint16_t llsLenAlCh = sizeof(llsValAlCh);
 /* Link loss alert level */
 static uint8_t llsValAl[] = {0};
 static const uint16_t llsLenAl = sizeof(llsValAl);
+#endif
 
+#if 0
 /* Immediate alert service declaration */
 static const uint8_t iasValSvc[] = {UINT16_TO_BYTES(ATT_UUID_IMMEDIATE_ALERT_SERVICE)};
 static const uint16_t iasLenSvc = sizeof(iasValSvc);
@@ -79,6 +81,37 @@ static const uint16_t iasLenAlCh = sizeof(iasValAlCh);
 static uint8_t iasValAl[] = {0};
 static const uint16_t iasLenAl = sizeof(iasValAl);
 
+#else
+
+//#define ATT_UUID_GP_RX 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42
+
+static const uint8_t svcRxUuid[] = { ATT_UUID_GP_RX };
+static const uint8_t svcTxUuid[] = { ATT_UUID_GP_TX };
+
+/* General purpose UUID */
+static const uint8_t gpValSvc[] = { ATT_UUID_GP_RX };
+static const uint16_t gpLenSvc = sizeof(gpValSvc);
+
+/* General Purpose data characteristic */
+static const uint8_t gpValCh[] = {ATT_PROP_WRITE, UINT16_TO_BYTES(GP_HDL), ATT_UUID_GP_RX};
+static const uint16_t gpLenCh = sizeof(gpValCh);
+
+/* Data buffer */
+static uint8_t gpVal[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static const uint16_t gpLen = sizeof(gpVal);
+
+static const uint8_t gpTxCh[] = {ATT_PROP_NOTIFY, UINT16_TO_BYTES(GP_TX_HDL), ATT_UUID_GP_TX};
+static const uint16_t gpLenTxCh = sizeof(gpTxCh);
+
+/* Note these are dummy values */
+static const uint8_t gpTx[] = {0};
+static const uint16_t gpLenTx = sizeof(gpTx);
+
+/* Proprietary data client characteristic configuration */
+static uint8_t gpTxChCcc[] = {UINT16_TO_BYTES(0x0000)};
+static const uint16_t gpLenTxChCcc = sizeof(gpTxChCcc);
+#endif
+
 /* TX power service declaration */
 static const uint8_t txsValSvc[] = {UINT16_TO_BYTES(ATT_UUID_TX_POWER_SERVICE)};
 static const uint16_t txsLenSvc = sizeof(txsValSvc);
@@ -88,12 +121,13 @@ static const uint8_t txsValTxCh[] = {ATT_PROP_READ, UINT16_TO_BYTES(TXS_TX_HDL),
 static const uint16_t txsLenTxCh = sizeof(txsValTxCh);
 
 /* TX power level */
-static uint8_t txsValTx[] = {0};
+static uint8_t txsValTx[] = {0x42};
 static const uint16_t txsLenTx = sizeof(txsValTx);
 
 /* Attribute list */
 static const attsAttr_t pxList[] =
 {
+#if 0
   {
     attPrimSvcUuid,
     (uint8_t *) llsValSvc,
@@ -118,6 +152,8 @@ static const attsAttr_t pxList[] =
     0,
     PX_SEC_PERMIT_READ | PX_SEC_PERMIT_WRITE
   },
+#endif
+#if 0
   {
     attPrimSvcUuid,
     (uint8_t *) iasValSvc,
@@ -142,6 +178,56 @@ static const attsAttr_t pxList[] =
     ATTS_SET_WRITE_CBACK,
     PX_SEC_PERMIT_WRITE
   },
+#else
+  {
+    attPrimSvcUuid,
+    (uint8_t *) gpValSvc,
+    (uint16_t *) &gpLenSvc,
+    sizeof(gpValSvc),
+    0,
+    ATTS_PERMIT_READ
+  },
+  {
+    attChUuid,
+    (uint8_t *) gpValCh,
+    (uint16_t *) &gpLenCh,
+    sizeof(gpValCh),
+    0,
+    ATTS_PERMIT_READ
+  },
+  {
+    svcRxUuid,
+    (uint8_t *)gpVal,
+    (uint16_t *) &gpLen,
+    sizeof(gpVal),
+    ATTS_SET_UUID_128 | ATTS_SET_VARIABLE_LEN | ATTS_SET_WRITE_CBACK,
+    PX_SEC_PERMIT_WRITE
+  },
+  {
+    attChUuid,
+    (uint8_t *) gpTxCh,
+    (uint16_t *) &gpLenTxCh,
+    sizeof(gpTxCh),
+    0,
+    ATTS_PERMIT_READ
+  },
+  {
+    svcTxUuid,
+    (uint8_t *) gpTx,
+    (uint16_t *) &gpLenTx,
+    sizeof(gpTx), //ATT_VALUE_MAX_LEN,
+    0,  //(ATTS_SET_UUID_128 | ATTS_SET_VARIABLE_LEN),
+    0,  //ATTS_PERMIT_READ
+  },
+  {
+    attCliChCfgUuid,
+    (uint8_t *) gpTxChCcc,
+    (uint16_t *) &gpLenTxChCcc,
+    sizeof(gpTxChCcc),
+    ATTS_SET_CCC,
+    (ATTS_PERMIT_READ | ATTS_PERMIT_WRITE)
+  },
+#endif
   {
     attPrimSvcUuid,
     (uint8_t *) txsValSvc,

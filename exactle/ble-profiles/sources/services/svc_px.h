@@ -31,6 +31,32 @@
 extern "C" {
 #endif
 
+/*! Base UUID:  00002760-08C2-11E1-9073-0E8AC72EXXXX */
+#define ATT_UUID_GP_BASE             0x2E, 0xC7, 0x8A, 0x0E, 0x73, 0x90, \
+                                            0xE1, 0x11, 0xC2, 0x08, 0x60, 0x27, 0x00, 0x00
+
+/*! Macro for building GP UUIDs */
+#define ATT_UUID_GP_BUILD(part)      UINT16_TO_BYTES(part), ATT_UUID_GP_BASE
+
+/*! Partial GP service UUIDs */
+#define ATT_UUID_GP_SERVICE_PART     0x1011
+
+/*! Partial GP rx characteristic UUIDs */
+#define ATT_UUID_GP_RX_PART          0x0011
+
+/*! Partial GP tx characteristic UUIDs */
+#define ATT_UUID_GP_TX_PART          0x0012
+
+/*! Partial GP ack characteristic UUIDs */
+#define ATT_UUID_GP_ACK_PART         0x0013
+
+/* GP services */
+#define ATT_UUID_GP_SERVICE          ATT_UUID_GP_BUILD(ATT_UUID_GP_SERVICE_PART)
+
+/* GP characteristics */
+#define ATT_UUID_GP_RX               ATT_UUID_GP_BUILD(ATT_UUID_GP_RX_PART)
+#define ATT_UUID_GP_TX               ATT_UUID_GP_BUILD(ATT_UUID_GP_TX_PART)
+
 /*! \addtogroup PROXIMITY_SERVICE
  *  \{ */
 
@@ -52,12 +78,24 @@ extern "C" {
 /*! \brief Service Handles */
 enum
 {
+#if 0
   LLS_SVC_HDL = PX_START_HDL,       /*!< \brief Link loss service declaration */
   LLS_AL_CH_HDL,                    /*!< \brief Alert level characteristic */
   LLS_AL_HDL,                       /*!< \brief Alert level */
-  IAS_SVC_HDL,                      /*!< \brief Immediate alert service declaration */
+#endif
+#if 0
+  IAS_SVC_HDL = PX_START_HDL,                      /*!< \brief Immediate alert service declaration */
   IAS_AL_CH_HDL,                    /*!< \brief Alert level characteristic */
   IAS_AL_HDL,                       /*!< \brief Alert level */
+#else
+  GP_SVC_HDL = PX_START_HDL,
+  GP_CH_HDL,
+  GP_HDL,
+
+  GP_TX_CH_HDL,                     /* GP notify characteristic */
+  GP_TX_HDL,                        /* GP notify data */
+  GP_TX_CH_CCC_HDL,                 /* GP notify client characteristic configuration */
+#endif
   TXS_SVC_HDL,                      /*!< \brief TX power service declaration */
   TXS_TX_CH_HDL,                    /*!< \brief TX power level characteristic */
   TXS_TX_HDL,                       /*!< \brief TX power level */
