@@ -500,19 +500,16 @@ void AppDiscProcAttMsg(attEvt_t *pMsg)
   {
     if (pMsg->hdr.event == ATTC_READ_BY_TYPE_RSP)
     {
-      APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
       dmConnId_t connId = (dmConnId_t)pMsg->hdr.param;
 
       if (pMsg->hdr.status != ATT_SUCCESS)
       {
-        APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
         /* No Database hash found on peer, notify application to start discovery */
         (*appDiscCback)(connId, APP_DISC_START);
       }
       else
       {
         appDbHdl_t hdl;
-        APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
 
         pAppDiscCb->inProgress = APP_DISC_IDLE;
 
@@ -521,7 +518,6 @@ void AppDiscProcAttMsg(attEvt_t *pMsg)
          */
         if ((hdl = AppDbGetHdl(connId)) == APP_DB_HDL_NONE)
         {
-          APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
           hdl = appConnCb[connId - 1].dbHdl = AppDbNewRecord(DmConnPeerAddrType(connId),
                                                              DmConnPeerAddr(connId), 
                                                              (DmConnRole(connId)==DM_ROLE_MASTER)?TRUE:FALSE);
@@ -532,7 +528,6 @@ void AppDiscProcAttMsg(attEvt_t *pMsg)
          */
         if (memcmp(AppDbGetPeerDbHash(hdl), pMsg->pValue + 3, ATT_DATABASE_HASH_LEN))
         {
-          APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
           /* The new hash is different.  Store it. */
           AppDbSetPeerDbHash(hdl, pMsg->pValue + 3);
 
@@ -571,7 +566,7 @@ void AppDiscProcAttMsg(attEvt_t *pMsg)
       /* continue with service discovery */
       status = AttcDiscServiceCmpl(pAppDiscCb->pDiscCb, pMsg);
 
-      APP_TRACE_INFO1("AttcDiscServiceCmpl status 0x%02x", status);
+      // APP_TRACE_INFO1("AttcDiscServiceCmpl status 0x%02x", status);
 
       /* if discovery complete  and successful */
       if (status == ATT_SUCCESS)
@@ -781,19 +776,13 @@ void AppDiscFindService(dmConnId_t connId, uint8_t uuidLen, uint8_t *pUuid, uint
 {
   appDiscCb_t *pAppDiscCb = &appDiscCb[connId - 1];
 
-  APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
-
   if (pAppDiscCb->pDiscCb == NULL)
   {
-    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
-
     pAppDiscCb->pDiscCb = WsfBufAlloc(sizeof(attcDiscCb_t));
   }
 
   if (pAppDiscCb->pDiscCb != NULL)
   {
-    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
-
     /* set connection as busy */
     DmConnSetIdle(connId, DM_IDLE_APP_DISC, DM_CONN_BUSY);
 
@@ -803,8 +792,6 @@ void AppDiscFindService(dmConnId_t connId, uint8_t uuidLen, uint8_t *pUuid, uint
     pAppDiscCb->pDiscCb->pHdlList = pHdlList;
     pAppDiscCb->pDiscCb->charListLen = listLen;
     AttcDiscService(connId, pAppDiscCb->pDiscCb, uuidLen, pUuid);
-
-    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
   }
 }
 

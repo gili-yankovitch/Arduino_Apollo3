@@ -108,7 +108,7 @@ static void dmAdvConfig(uint8_t advType, uint8_t peerAddrType, uint8_t *pPeerAdd
 /*************************************************************************************************/
 void dmAdvActConfig(dmAdvMsg_t *pMsg)
 {
-  DM_TRACE_INFO1("dmAdvActConfig: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+  //DM_TRACE_INFO1("dmAdvActConfig: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
   if (dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT] == DM_ADV_STATE_IDLE)
   {
@@ -140,7 +140,7 @@ void dmAdvActSetData(dmAdvMsg_t *pMsg)
 {
   WSF_ASSERT(pMsg->apiSetData.len <= HCI_ADV_DATA_LEN);
 
-  DM_TRACE_INFO1("dmAdvActSetData: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+  // DM_TRACE_INFO1("dmAdvActSetData: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
   if (dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT] == DM_ADV_STATE_IDLE)
   {
@@ -167,7 +167,7 @@ void dmAdvActSetData(dmAdvMsg_t *pMsg)
 /*************************************************************************************************/
 void dmAdvActStart(dmAdvMsg_t *pMsg)
 {
-  DM_TRACE_INFO1("dmAdvActStart: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+  // DM_TRACE_INFO1("dmAdvActStart: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
    if (dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT] == DM_ADV_STATE_IDLE)
   {
@@ -197,7 +197,7 @@ void dmAdvActStart(dmAdvMsg_t *pMsg)
 /*************************************************************************************************/
 void dmAdvActStop(dmAdvMsg_t *pMsg)
 {
-  DM_TRACE_INFO1("dmAdvActStop: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+  // DM_TRACE_INFO1("dmAdvActStop: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
   if (dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT] == DM_ADV_STATE_ADVERTISING)
   {
@@ -268,7 +268,7 @@ void dmAdvActSetRandAddr(dmAdvMsg_t *pMsg)
 /*************************************************************************************************/
 void dmAdvActTimeout(dmAdvMsg_t *pMsg)
 {
-  DM_TRACE_INFO0("dmAdvActTimeout!");
+  // DM_TRACE_INFO0("dmAdvActTimeout!");
 
   if (dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT] == DM_ADV_STATE_ADVERTISING)
   {
@@ -324,7 +324,7 @@ void dmAdvHciHandler(hciEvt_t *pEvent)
   {
     uint8_t cbackEvent = 0;
 
-    DM_TRACE_INFO1("HCI_LE_ADV_ENABLE_CMD_CMPL_CBACK_EVT: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+    // DM_TRACE_INFO1("HCI_LE_ADV_ENABLE_CMD_CMPL_CBACK_EVT: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
     switch (dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT])
     {
@@ -442,7 +442,7 @@ void dmAdvMsgHandler(wsfMsgHdr_t *pMsg)
 /*************************************************************************************************/
 void dmAdvStartDirected(uint8_t advType, uint16_t duration, uint8_t addrType, uint8_t *pAddr)
 {
-  DM_TRACE_INFO1("dmAdvStartDirected: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+  // DM_TRACE_INFO1("dmAdvStartDirected: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
   /* if not advertising */
   if (dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT] == DM_ADV_STATE_IDLE)
@@ -469,7 +469,7 @@ void dmAdvStartDirected(uint8_t advType, uint16_t duration, uint8_t addrType, ui
 /*************************************************************************************************/
 void dmAdvStopDirected(void)
 {
-  DM_TRACE_INFO1("dmAdvStopDirected: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+  // DM_TRACE_INFO1("dmAdvStopDirected: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
   /* if advertising or starting advertising */
   if ((dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT] == DM_ADV_STATE_ADVERTISING) ||
@@ -492,7 +492,7 @@ void dmAdvStopDirected(void)
 /*************************************************************************************************/
 void dmAdvConnected(void)
 {
-  DM_TRACE_INFO1("dmAdvConnected: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+  // DM_TRACE_INFO1("dmAdvConnected: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
   WsfTimerStop(&dmAdvCb.advTimer);
 
@@ -512,7 +512,7 @@ void dmAdvConnected(void)
 /*************************************************************************************************/
 void dmAdvConnectFailed(void)
 {
-  DM_TRACE_INFO1("dmAdvConnectFailed: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
+  // DM_TRACE_INFO1("dmAdvConnectFailed: state: %d", dmAdvCb.advState[DM_ADV_HANDLE_DEFAULT]);
 
   WsfTimerStop(&dmAdvCb.advTimer);
 

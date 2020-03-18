@@ -25,17 +25,8 @@ SOURCES += exactle/ble-profiles/sources/apps/app/common/ui_timer.c
 SOURCES += exactle/ble-profiles/sources/profiles/fmpl/fmpl_main.c
 SOURCES += exactle/ble-profiles/sources/profiles/gap/gap_main.c
 SOURCES += exactle/ble-profiles/sources/profiles/gatt/gatt_main.c
-SOURCES += exactle/ble-profiles/sources/services/svc_core.c
-SOURCES += exactle/ble-profiles/sources/services/svc_px.c
-
 SOURCES += exactle/ble-profiles/sources/services/svc_dis.c
+SOURCES += exactle/ble-profiles/sources/services/svc_core.c
 
-#SOURCES += exactle/ble-profiles/sources/services/svc_cte.c
-#SOURCES += exactle/ble-profiles/sources/profiles/atps/atps_main.c
-
-#SOURCES += exactle/ble-profiles/sources/services/svc_batt.c
-#SOURCES += exactle/ble-profiles/sources/profiles/bas/bas_main.c
-#SOURCES += exactle/ble-profiles/sources/apps/assettag/assettag_main.c
-
-SOURCES += exactle/ble-profiles/sources/apps/tag/tag_main.c
-#SOURCES += exactle/ble-profiles/sources/apps/tag/tag_main_wdxs.c
+SOURCES += exactle/ble-profiles/sources/services/svc_gp.c
+SOURCES += exactle/ble-profiles/sources/apps/gp/gp_main.c

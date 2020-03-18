@@ -159,7 +159,7 @@ void dmConnSmExecute(dmConnCcb_t *pCcb, dmConnMsg_t *pMsg)
   uint8_t           action;
   uint8_t           event;
 
-  DM_TRACE_INFO2("dmConnSmExecute event=%d state=%d", pMsg->hdr.event, pCcb->state);
+  // DM_TRACE_INFO2("dmConnSmExecute event=%d state=%d", pMsg->hdr.event, pCcb->state);
 
   /* get the event */
   event = DM_MSG_MASK(pMsg->hdr.event);

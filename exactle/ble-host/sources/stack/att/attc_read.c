@@ -189,14 +189,6 @@ void AttcFindByTypeValueReq(dmConnId_t connId, uint16_t startHandle, uint16_t en
     UINT16_TO_BSTREAM(p, uuid16);
     memcpy(p, pValue, valueLen);
 
-    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
-
-    am_util_debug_printf("Sending ATT message. Len: 0x%x, StartHandle: %u StopHandle: %u\r\n", pPkt->len, startHandle, endHandle);
-    for (i = 0; i < valueLen; ++i)
-    	am_util_debug_printf("%x ", pValue[i]);
-
-    am_util_debug_printf("\r\n");
-
     /* send message */
     attcSendMsg(connId, startHandle, ATTC_MSG_API_FIND_BY_TYPE_VALUE, pPkt, continuing);
   }
@@ -225,8 +217,6 @@ void AttcReadByTypeReq(dmConnId_t connId, uint16_t startHandle, uint16_t endHand
   /* allocate packet and parameter buffer */
   if ((pPkt = attMsgAlloc(ATT_READ_TYPE_REQ_BUF_LEN + uuidLen)) != NULL)
   {
-    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
-
     /* set parameters */
     pPkt->len = ATT_READ_TYPE_REQ_LEN + uuidLen;
     pPkt->h.startHandle = startHandle;
@@ -264,7 +254,6 @@ void AttcReadLongReq(dmConnId_t connId, uint16_t handle, uint16_t offset, bool_t
   /* allocate packet and parameter buffer */
   if ((pPkt = attMsgAlloc(ATT_READ_BLOB_REQ_BUF_LEN)) != NULL)
   {
-    APP_TRACE_INFO2("%s::%d", __FILE__, __LINE__);
     /* set parameters */
     pPkt->len = ATT_READ_BLOB_REQ_LEN;
     pPkt->o.offset = offset;

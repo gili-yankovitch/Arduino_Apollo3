@@ -200,7 +200,7 @@ void AppHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 {
   if (pMsg != NULL)
   {
-    APP_TRACE_INFO1("App got evt %d", pMsg->event);
+    // APP_TRACE_INFO1("App got evt %d", pMsg->event);
 
     if (pMsg->event >= APP_MASTER_MSG_START)
     {

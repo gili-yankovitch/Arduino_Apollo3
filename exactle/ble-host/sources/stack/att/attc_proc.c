@@ -394,7 +394,6 @@ void attcProcInd(attcCcb_t *pCcb, uint16_t len, uint8_t *pPacket)
   /* verify handle and call callback */
   if ((evt.handle != 0) && attCb.cback)
   {
-    APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
     (*attCb.cback)(&evt);
   }
 

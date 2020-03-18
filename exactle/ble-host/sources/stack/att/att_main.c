@@ -338,7 +338,6 @@ void attSetMtu(attCcb_t *pCcb, uint16_t peerMtu, uint16_t localMtu)
 /*************************************************************************************************/
 void attExecCallback(dmConnId_t connId, uint8_t event, uint16_t handle, uint8_t status, uint16_t mtu)
 {
-  APP_TRACE_INFO2("%s:%d", __FILE__, __LINE__);
   if (attCb.cback)
   {
     attEvt_t evt;

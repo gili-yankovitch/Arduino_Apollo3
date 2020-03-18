@@ -87,7 +87,7 @@
 //
 //
 //*****************************************************************************
-#include "tag/tag_api.h"
+#include "gp/gp_api.h"
 #include "app_ui.h"
 
 //*****************************************************************************
@@ -287,8 +287,8 @@ exactle_stack_init(void)
     handlerId = WsfOsSetNextHandler(AppHandler);
     AppHandlerInit(handlerId);
 
-    handlerId = WsfOsSetNextHandler(TagHandler);
-    TagHandlerInit(handlerId);
+    handlerId = WsfOsSetNextHandler(GPHandler);
+    GPHandlerInit(handlerId);
 
     // ButtonHandlerId = WsfOsSetNextHandler(button_handler);
 
@@ -390,7 +390,7 @@ RadioTask(void *pvParameters)
     //
     // Start the "Tag" profile.
     //
-    TagStart();
+    GPStart();
 
     serial_print();
 

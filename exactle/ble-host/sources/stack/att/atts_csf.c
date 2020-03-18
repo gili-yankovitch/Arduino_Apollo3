@@ -66,7 +66,7 @@ void attsCsfSetHashUpdateStatus(bool_t isUpdating)
    */
   if (isUpdating == FALSE)
   {
-    ATT_TRACE_INFO0("Database hash calculation complete");
+    // ATT_TRACE_INFO0("Database hash calculation complete");
 
     attsCheckPendDbHashReadRsp();
 
@@ -79,7 +79,7 @@ void attsCsfSetHashUpdateStatus(bool_t isUpdating)
   }
   else
   {
-    ATT_TRACE_INFO0("Calculating database hash");
+    // ATT_TRACE_INFO0("Calculating database hash");
 
     /* If the application, for whatever reason, previously recalculated the database hash over an
      * unchanged database and a client pended on a Read By Type Request of the database hash, then

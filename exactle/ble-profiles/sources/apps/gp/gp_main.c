@@ -41,7 +41,7 @@
 #include "app_db.h"
 #include "app_ui.h"
 #include "svc_core.h"
-#include "svc_px.h"
+#include "svc_gp.h"
 #include "svc_ch.h"
 #include "gatt/gatt_api.h"
 #include "gap/gap_api.h"
@@ -161,28 +161,8 @@ static uint8_t localIrk[] =
 **************************************************************************************************/
 
 /*! advertising data, discoverable mode */
-static const uint8_t tagAdvDataDisc[] =
+static const uint8_t gpAdvDataDisc[] =
 {
-#if 0
-  /*! flags */
-  2,                                      /*! length */
-  DM_ADV_TYPE_FLAGS,                      /*! AD type */
-  DM_FLAG_LE_GENERAL_DISC | //DM_FLAG_LE_LIMITED_DISC |               /*! flags */
-  DM_FLAG_LE_BREDR_NOT_SUP,
-
-  /*! tx power */
-  2,                                      /*! length */
-  DM_ADV_TYPE_TX_POWER,                   /*! AD type */
-  0,                                      /*! tx power */
-
-  /*! service UUID list */
-  7,                                      /*! length */
-  DM_ADV_TYPE_16_UUID,                    /*! AD type */
-  UINT16_TO_BYTES(ATT_UUID_LINK_LOSS_SERVICE),
-  UINT16_TO_BYTES(ATT_UUID_IMMEDIATE_ALERT_SERVICE),
-  UINT16_TO_BYTES(ATT_UUID_TX_POWER_SERVICE),
-#endif
-
   /*! device name */
   10,                                      /*! length */
   DM_ADV_TYPE_LOCAL_NAME,                 /*! AD type */
@@ -198,14 +178,15 @@ static const uint8_t tagAdvDataDisc[] =
 };
 
 /*! scan data */
-static const uint8_t tagScanData[] =
+static const uint8_t gpScanData[] =
 {
   /*! service UUID list */
-  5,                                      /*! length */
-  DM_ADV_TYPE_16_UUID,                    /*! AD type */
+  1,                                      /*! length */
+  DM_ADV_TYPE_16_UUID_PART,                    /*! AD type */
+
   //UINT16_TO_BYTES(ATT_UUID_LINK_LOSS_SERVICE),
-  UINT16_TO_BYTES(ATT_UUID_IMMEDIATE_ALERT_SERVICE),
-  UINT16_TO_BYTES(ATT_UUID_TX_POWER_SERVICE)
+  //UINT16_TO_BYTES(ATT_UUID_IMMEDIATE_ALERT_SERVICE),
+  //UINT16_TO_BYTES(ATT_UUID_TX_POWER_SERVICE)
 };
 
 /**************************************************************************************************
@@ -572,12 +553,12 @@ static void tagPrivRemDevFromResListInd(dmEvt_t *pMsg)
 static void tagSetup(dmEvt_t *pMsg)
 {
   /* set advertising and scan response data for discoverable mode */
-  AppAdvSetData(APP_ADV_DATA_DISCOVERABLE, sizeof(tagAdvDataDisc), (uint8_t *) tagAdvDataDisc);
-  AppAdvSetData(APP_SCAN_DATA_DISCOVERABLE, sizeof(tagScanData), (uint8_t *) tagScanData);
+  AppAdvSetData(APP_ADV_DATA_DISCOVERABLE, sizeof(gpAdvDataDisc), (uint8_t *) gpAdvDataDisc);
+  AppAdvSetData(APP_SCAN_DATA_DISCOVERABLE, sizeof(gpScanData), (uint8_t *) gpScanData);
 
   /* set advertising and scan response data for connectable mode */
   AppAdvSetData(APP_ADV_DATA_CONNECTABLE, 0, NULL);
-  AppAdvSetData(APP_SCAN_DATA_CONNECTABLE, sizeof(tagScanData), (uint8_t *) tagScanData);
+  AppAdvSetData(APP_SCAN_DATA_CONNECTABLE, sizeof(gpScanData), (uint8_t *) gpScanData);
 
   /* start advertising; automatically set connectable/discoverable mode and bondable mode */
   AppAdvStart(APP_MODE_AUTO_INIT);
@@ -657,6 +638,8 @@ static void tagProcRssiTimer(dmEvt_t *pMsg)
     WsfTimerStartSec(&tagCb.rssiTimer, TAG_READ_RSSI_INTERVAL);
   }
 }
+
+#if 0
 
 /*************************************************************************************************/
 /*!
@@ -803,6 +786,7 @@ static void tagBtnCback(uint8_t btn)
     }
   }
 }
+#endif
 
 /*************************************************************************************************/
 /*!
@@ -1056,7 +1040,7 @@ static void tagProcMsg(dmEvt_t *pMsg)
  *  \return None.
  */
 /*************************************************************************************************/
-void TagHandlerInit(wsfHandlerId_t handlerId)
+void GPHandlerInit(wsfHandlerId_t handlerId)
 {
   APP_TRACE_INFO0("TagHandlerInit");
 
@@ -1098,7 +1082,7 @@ void TagHandlerInit(wsfHandlerId_t handlerId)
  *  \return None.
  */
 /*************************************************************************************************/
-void TagHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
+void GPHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 {
   if (pMsg != NULL)
   {
@@ -1136,7 +1120,7 @@ void TagHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
  *  \return None.
  */
 /*************************************************************************************************/
-void TagStart(void)
+void GPStart(void)
 {
   /* Register for stack callbacks */
   DmRegister(tagDmCback);
@@ -1146,7 +1130,7 @@ void TagStart(void)
   AttsCccRegister(TAG_NUM_CCC_IDX, (attsCccSet_t *) tagCccSet, tagCccCback);
 
   /* Register for app framework button callbacks */
-  AppUiBtnRegister(tagBtnCback);
+  //AppUiBtnRegister(tagBtnCback);
 
   /* Register for app framework discovery callbacks */
   AppDiscRegister(tagDiscCback);
@@ -1154,8 +1138,8 @@ void TagStart(void)
   /* Initialize attribute server database */
   SvcCoreGattCbackRegister(GattReadCback, GattWriteCback);
   SvcCoreAddGroup();
-  SvcPxCbackRegister(NULL, tagIasWriteCback);
-  SvcPxAddGroup();
+  SvcGPCbackRegister(NULL, tagIasWriteCback);
+  SvcGPAddGroup();
 
   /* Set Service Changed CCCD index. */
   GattSetSvcChangedIdx(TAG_GATT_SC_CCC_IDX);

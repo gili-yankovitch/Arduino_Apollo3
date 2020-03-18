@@ -1090,8 +1090,6 @@ void AppSlaveProcDmMsg(dmEvt_t *pMsg)
 {
   appConnCb_t *pCb = NULL;
 
-  APP_TRACE_INFO3("%s::%d event = %d", __FILE__, __LINE__, pMsg->hdr.event);
-
   /* look up app connection control block from DM connection ID */
   if ((pMsg->hdr.event != DM_ADV_STOP_IND) &&
       (pMsg->hdr.event != DM_ADV_SET_STOP_IND))
