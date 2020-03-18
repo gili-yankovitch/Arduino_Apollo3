@@ -66,6 +66,12 @@ void GPHandlerInit(wsfHandlerId_t handlerId);
 /*************************************************************************************************/
 void GPHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg);
 
+/* Save user callback */
+void gpSetUserCallback(void (*usrCb)(dmConnId_t, uint8_t *, uint16_t));
+
+/* Send a response */
+void gpSendResponse(dmConnId_t connId, uint8_t * val, uint16_t len);
+
 #ifdef __cplusplus
 };
 #endif

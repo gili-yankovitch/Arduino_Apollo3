@@ -15,7 +15,7 @@
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  d\istributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
@@ -79,20 +79,6 @@ static const uint16_t gpLenTx = sizeof(gpTx);
 static uint8_t gpTxChCcc[] = {UINT16_TO_BYTES(0x0000)};
 static const uint16_t gpLenTxChCcc = sizeof(gpTxChCcc);
 
-#if 0
-/* TX power service declaration */
-static const uint8_t txsValSvc[] = {UINT16_TO_BYTES(ATT_UUID_TX_POWER_SERVICE)};
-static const uint16_t txsLenSvc = sizeof(txsValSvc);
-
-/* TX power level characteristic */
-static const uint8_t txsValTxCh[] = {ATT_PROP_READ, UINT16_TO_BYTES(TXS_TX_HDL), UINT16_TO_BYTES(ATT_UUID_TX_POWER_LEVEL)};
-static const uint16_t txsLenTxCh = sizeof(txsValTxCh);
-
-/* TX power level */
-static uint8_t txsValTx[] = {0x42};
-static const uint16_t txsLenTx = sizeof(txsValTx);
-#endif
-
 /* Attribute list */
 static const attsAttr_t gpList[] =
 {
@@ -143,34 +129,7 @@ static const attsAttr_t gpList[] =
     sizeof(gpTxChCcc),
     ATTS_SET_CCC,
     (ATTS_PERMIT_READ | ATTS_PERMIT_WRITE)
-  },
-
-#if 0
-  {
-    attPrimSvcUuid,
-    (uint8_t *) txsValSvc,
-    (uint16_t *) &txsLenSvc,
-    sizeof(txsValSvc),
-    0,
-    ATTS_PERMIT_READ
-  },
-  {
-    attChUuid,
-    (uint8_t *) txsValTxCh,
-    (uint16_t *) &txsLenTxCh,
-    sizeof(txsValTxCh),
-    0,
-    ATTS_PERMIT_READ
-  },
-  {
-    svcTxPwrUuid,
-    txsValTx,
-    (uint16_t *) &txsLenTx,
-    sizeof(txsValTx),
-    0,
-    GP_SEC_PERMIT_READ
   }
-#endif
 };
 
 /* Group structure */

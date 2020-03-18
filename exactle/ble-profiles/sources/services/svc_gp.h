@@ -85,11 +85,7 @@ enum
   GP_TX_CH_HDL,                     /* GP notify characteristic */
   GP_TX_HDL,                        /* GP notify data */
   GP_TX_CH_CCC_HDL,                 /* GP notify client characteristic configuration */
-#if 0
-  TXS_SVC_HDL,                      /*!< \brief TX power service declaration */
-  TXS_TX_CH_HDL,                    /*!< \brief TX power level characteristic */
-  TXS_TX_HDL,                       /*!< \brief TX power level */
-#endif
+
   GP_MAX_HDL                        /*!< \brief Maximum handle. */
 };
 /**@}*/

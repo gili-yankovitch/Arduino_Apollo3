@@ -364,7 +364,7 @@ RadioTaskSetup(void)
 //
 //*****************************************************************************
 
-void serial_print();
+void gp_setup();
 
 void
 RadioTask(void *pvParameters)
@@ -382,17 +382,11 @@ RadioTask(void *pvParameters)
     exactle_stack_init();
 
     //
-    // Prep the buttons for use
-    //
-
-    // setup_buttons();
-
-    //
-    // Start the "Tag" profile.
+    // Start the "General Purpose" profile.
     //
     GPStart();
 
-    serial_print();
+    gp_setup();
 
     while (1)
     {

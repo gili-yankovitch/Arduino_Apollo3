@@ -9,4 +9,4 @@ SOURCES += payload/tag/rtos.c
 #SOURCES += payload/radio_task.c
 #SOURCES += payload/rtos.c
 #SOURCES += payload/svc_amdtp.c
-SOURCES += payload/t.cpp
+SOURCES += payload/ble_usr.cpp
