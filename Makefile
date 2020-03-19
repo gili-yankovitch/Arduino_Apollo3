@@ -56,7 +56,7 @@ AXFFLAGS += -O binary
 
 # ##### SOURCES ##### #
 SOURCES =
-SUBDIRS = variants/${VARIANT} cores/${CORE}/am_sdk_ap3/ cores/${CORE}/ard_sup/ FreeRTOSv10.1.1/ exactle/ble-host/ exactle/ble-profiles/ exactle/wsf/ libraries/ payload/
+SUBDIRS = variants/${VARIANT} cores/${CORE}/am_sdk_ap3/ cores/${CORE}/ard_sup/ FreeRTOSv10.1.1/ exactle/ble-host/ exactle/ble-profiles/ exactle/wsf/ libraries/ micro-aes/ payload/
 
 $(foreach SUBDIR,${SUBDIRS},					\
 	$(eval include ${SUBDIR}/Makefile.include))

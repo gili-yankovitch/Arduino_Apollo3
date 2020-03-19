@@ -11,3 +11,4 @@ SOURCES += payload/tag/rtos.c
 #SOURCES += payload/svc_amdtp.c
 SOURCES += payload/ble_usr.cpp
 SOURCES += payload/ble_server.cpp
+SOURCES += payload/aes_cbc.cpp
