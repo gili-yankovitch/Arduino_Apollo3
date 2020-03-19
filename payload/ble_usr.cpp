@@ -4,10 +4,10 @@
 #include <am_util_debug.h>
 #include <dm_api.h>
 #include <gp/gp_api.h>
-
+#include "ble_usr.h"
 #define uprintf am_util_debug_printf
 
-ATECCX08A atecc;
+// ATECCX08A atecc;
 
 #define MAX_FRAG_SIZE 16
 #define MAX_FRAGMENTS 16
@@ -70,7 +70,7 @@ void bleSendFragmented(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 		FRAG_PKT_FIELD(out_frags[i].data, FRAG_OFFSET_TOT_LEN) = len;
 		memcpy(FRAG_PKT_DATA(out_frags[i].data), pkt + (i * MAX_FRAG_SIZE), data_size);
 
-		uprintf("Sending fragment: %s (Pkt id: %u Total size: %u Fragment size: %u)...\r\n", FRAG_PKT_DATA(out_frags[i].data), pkt_id, len, data_size)
+		//uprintf("Sending fragment: %s (Pkt id: %u Total size: %u Fragment size: %u)...\r\n", FRAG_PKT_DATA(out_frags[i].data), pkt_id, len, data_size)
 
 		gpSendResponse(connId, out_frags[i].data, sizeof(out_frags[i].data));
 	}
@@ -128,7 +128,7 @@ extern "C" void bleUsrCallback(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 	in_frags[frag_id].total_len = tot_len;
 	memcpy(in_frags[frag_id].frag, data, data_size);
 
-	uprintf("[FRAG] Pkt Id: %d Received Fragment Id: %d Total fragments: %d Frag size: %d Total size: %d, data: %s\r\n", pkt_id, frag_id, total_fragments, data_size, tot_len, data);
+	// uprintf("[FRAG] Pkt Id: %d Received Fragment Id: %d Total fragments: %d Frag size: %d Total size: %d, data: %s\r\n", pkt_id, frag_id, total_fragments, data_size, tot_len, data);
 
 	handler.recvd_len += data_size;
 
@@ -147,11 +147,11 @@ extern "C" void bleUsrCallback(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 	}
 
 	/* Finally done. Reassemble... */
-	uprintf("Got message size: %u\r\n", handler.total_len);
-	uprintf("\t%s\r\n", handler.packet);
+	// uprintf("Got message size: %u\r\n", handler.total_len);
+	// uprintf("\t%s\r\n", handler.packet);
 
-	/* Return a PONG response */
-	bleSendFragmented(connId, handler.packet, handler.total_len);
+	/* Call server function */
+	bleServer(connId, handler.packet, handler.total_len);
 
 error:
 	return;
@@ -159,26 +159,8 @@ error:
 
 extern "C" void gp_setup()
 {
-	Wire.begin();
-
-	if (!atecc.begin())
-		uprintf("Failed initializing I2C\r\n");
-
-	uprintf("Successful wakeUp(). I2C connections are good.\r\n");
-
-	atecc.readConfigZone(false); // Debug argument false (OFF)
-
-	uprintf("Serial: ");
-
-	for (int i = 0 ; i < 9 ; i++)
-	{
-		if ((atecc.serialNumber[i] >> 4) == 0)
-			uprintf("0");
-
-		uprintf("%x", atecc.serialNumber[i]);
-	}
-
-	uprintf("\r\n");
+	/* Initialize server */
+	bleServerInit();
 
 	/* Register callback */
 	gpSetUserCallback(bleUsrCallback);
