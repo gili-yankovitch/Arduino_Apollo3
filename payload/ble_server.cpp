@@ -98,6 +98,8 @@ void bleServerInit()
 		goto error;
 	}
 
+	memcpy(aes_key, hash, AES256_KEY_SIZE);
+#if 0
 	// uprintf("SHA256: ");
 
 	for (i = 0; i < SHA256_SIZE; ++i)
@@ -110,9 +112,40 @@ void bleServerInit()
 	}
 
 	// uprintf("\r\n");
-
+#endif
 error:
 	return;
+}
+
+static bool_t bleSendEncrypted(dmConnId_t connId, uint8_t * pkt, uint16_t len)
+{
+	bool_t err = false;
+	uint8_t padded_res[MAX_RSP_SIZE];
+	uint8_t encrypted_res[MAX_RSP_SIZE];
+	uint8_t pad = 0;
+
+	/* Reset buffer */
+	memset(padded_res, 0, MAX_RSP_SIZE);
+
+	/* Add padding field */
+	len++;
+
+	/* Make sure packet is padded */
+	if (len % AES_BLOCK_SIZE)
+		pad = AES_BLOCK_SIZE - (len % AES_BLOCK_SIZE);
+
+	padded_res[0] = pad;
+	memcpy(&padded_res[1], pkt, len - 1);
+
+	if (!aes256_cbc_encrypt(aes_key, aes_iv, padded_res, len, encrypted_res))
+		goto error;
+
+	/* Send the encrypted packet */
+	bleSendFragmented(connId, encrypted_res, len + pad);
+
+	err = true;
+error:
+	return err;
 }
 
 static bool_t bleRequestParse(uint8_t * pkt, uint16_t len, struct bleRequest * r)
@@ -184,37 +217,6 @@ error:
 	return ret_size;
 }
 
-static bool_t bleSendEncrypted(dmConnId_t connId, uint8_t * pkt, uint16_t len)
-{
-	bool_t err = false;
-	uint8_t padded_res[MAX_RSP_SIZE];
-	uint8_t encrypted_res[MAX_RSP_SIZE];
-	uint8_t pad = 0;
-
-	/* Reset buffer */
-	memset(padded_res, 0, MAX_RSP_SIZE);
-
-	/* Add padding field */
-	len++;
-
-	/* Make sure packet is padded */
-	if (len % AES_BLOCK_SIZE)
-		pad = AES_BLOCK_SIZE - (len % AES_BLOCK_SIZE);
-
-	padded_res[0] = pad;
-	memcpy(&padded_res[1], pkt, len - 1);
-
-	if (!aes256_cbc_encrypt(aes_key, aes_iv, padded_res, len, encrypted_res))
-		goto error;
-
-	/* Send the encrypted packet */
-	bleSendFragmented(connId, encrypted_res, len + pad);
-
-	err = true;
-error:
-	return err;
-}
-
 static void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 {
 	struct bleRequest req;
@@ -263,6 +265,9 @@ static void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 	if (!(raw_rsp_size = bleSerialize(&rsp, raw_rsp, MAX_RSP_SIZE)))
 		goto error;
 
+	/* Send encrypted result */
+	bleSendEncrypted(connId, raw_rsp, raw_rsp_size);
+
 error:
 	return;
 }
@@ -271,9 +276,14 @@ void bleServer(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 {
 	uint8_t plain_req[MAX_REQ_SIZE];
 
+	memset(plain_req, 0, MAX_REQ_SIZE);
+	memset(aes_iv, 0, AES_BLOCK_SIZE);
+
 	/* Decrypt the packet */
 	if (!aes256_cbc_decrypt(aes_key, aes_iv, pkt, len, plain_req))
 		goto error;
+
+	uprintf("Decryption done.\r\n");
 
 	/* Call upper layer */
 	bleProtocolHandler(connId, plain_req + 1, len - plain_req[0] /* Padding field */);

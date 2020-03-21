@@ -70,7 +70,7 @@ void bleSendFragmented(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 		FRAG_PKT_FIELD(out_frags[i].data, FRAG_OFFSET_TOT_LEN) = len;
 		memcpy(FRAG_PKT_DATA(out_frags[i].data), pkt + (i * MAX_FRAG_SIZE), data_size);
 
-		//uprintf("Sending fragment: %s (Pkt id: %u Total size: %u Fragment size: %u)...\r\n", FRAG_PKT_DATA(out_frags[i].data), pkt_id, len, data_size)
+		uprintf("Sending fragment: %s (Pkt id: %u Total size: %u Fragment size: %u)...\r\n", FRAG_PKT_DATA(out_frags[i].data), pkt_id, len, data_size)
 
 		gpSendResponse(connId, out_frags[i].data, sizeof(out_frags[i].data));
 	}
@@ -128,7 +128,7 @@ extern "C" void bleUsrCallback(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 	in_frags[frag_id].total_len = tot_len;
 	memcpy(in_frags[frag_id].frag, data, data_size);
 
-	// uprintf("[FRAG] Pkt Id: %d Received Fragment Id: %d Total fragments: %d Frag size: %d Total size: %d, data: %s\r\n", pkt_id, frag_id, total_fragments, data_size, tot_len, data);
+	uprintf("[FRAG] Pkt Id: %d Received Fragment Id: %d Total fragments: %d Frag size: %d Total size: %d\r\n", pkt_id, frag_id, total_fragments, data_size, tot_len);
 
 	handler.recvd_len += data_size;
 
@@ -147,7 +147,7 @@ extern "C" void bleUsrCallback(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 	}
 
 	/* Finally done. Reassemble... */
-	// uprintf("Got message size: %u\r\n", handler.total_len);
+	uprintf("[FRAG] Fragmentation done. Message size: %u\r\n", handler.total_len);
 	// uprintf("\t%s\r\n", handler.packet);
 
 	/* Call server function */
