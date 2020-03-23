@@ -71,8 +71,8 @@ Error : EEPROM start address must be divisble by 8192
         //2048 = 23ms update time
         const int AP3_FLASH_EEPROM_SIZE = 1024; //In bytes
 
-uint8_t read(uint16_t eepromLocation);
-void write(uint16_t eepromLocation, uint8_t dataToWrite);
+uint8_t eeprom_read(uint16_t eepromLocation);
+void eeprom_write(uint16_t eepromLocation, uint8_t dataToWrite);
 void writeBlockToEEPROM(uint16_t eepromLocation, const uint8_t *dataToWrite, uint16_t blockSize);
 
 struct EERef
@@ -81,12 +81,12 @@ struct EERef
       : index(index) {}
 
   //Access/read members.
-  uint8_t operator*() const { return read(index); }
+  uint8_t operator*() const { return eeprom_read(index); }
   operator const uint8_t() const { return **this; }
 
   //Assignment/write members.
   EERef &operator=(const EERef &ref) { return *this = *ref; }
-  EERef &operator=(uint8_t in) { return write(index, in), *this; }
+  EERef &operator=(uint8_t in) { return eeprom_write(index, in), *this; }
   EERef &operator+=(uint8_t in) { return *this = **this + in; }
   EERef &operator-=(uint8_t in) { return *this = **this - in; }
   EERef &operator*=(uint8_t in) { return *this = **this * in; }

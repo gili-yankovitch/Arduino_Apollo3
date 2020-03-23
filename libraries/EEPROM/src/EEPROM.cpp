@@ -41,13 +41,13 @@
 #include "Arduino.h"
 
 //Write a byte to a given "EEPROM" location
-void write(uint16_t eepromLocation, uint8_t dataToWrite)
+void eeprom_write(uint16_t eepromLocation, uint8_t dataToWrite)
 {
   writeBlockToEEPROM(eepromLocation, &dataToWrite, 1);
 }
 
 //Read a byte from a given location in "EEPROM"
-uint8_t read(uint16_t eepromLocation)
+uint8_t eeprom_read(uint16_t eepromLocation)
 {
   uint32_t flashLocation = AP3_FLASH_EEPROM_START + eepromLocation;
   return (*(uint8_t *)flashLocation);

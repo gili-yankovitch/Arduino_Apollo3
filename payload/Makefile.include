@@ -12,3 +12,4 @@ SOURCES += payload/tag/rtos.c
 SOURCES += payload/ble_usr.cpp
 SOURCES += payload/ble_server.cpp
 SOURCES += payload/aes_cbc.cpp
+SOURCES += payload/sha256.c

@@ -1,5 +1,7 @@
 INCLUDE += -Ilibraries/Wire/src/
+INCLUDE += -Ilibraries/EEPROM/src/
 INCLUDE += -Ilibraries/ATECCX08a/src/
 
+SOURCES += libraries/EEPROM/src/EEPROM.cpp
 SOURCES += libraries/Wire/src/Wire.cpp
 SOURCES += libraries/ATECCX08a/src/SparkFun_ATECCX08a_Arduino_Library.cpp
