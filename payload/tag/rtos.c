@@ -164,11 +164,6 @@ void
 setup_task(void *pvParameters)
 {
     //
-    // Print a debug message.
-    //
-    am_util_debug_printf("Running setup tasks...\r\n");
-
-    //
     // Run setup functions.
     //
     RadioTaskSetup();

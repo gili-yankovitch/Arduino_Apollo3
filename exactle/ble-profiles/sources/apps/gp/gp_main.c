@@ -874,7 +874,7 @@ static void tagProcMsg(dmEvt_t *pMsg)
 /*************************************************************************************************/
 void GPHandlerInit(wsfHandlerId_t handlerId)
 {
-  APP_TRACE_INFO0("TagHandlerInit");
+  // APP_TRACE_INFO0("TagHandlerInit");
 
   /* store handler ID */
   tagCb.handlerId = handlerId;

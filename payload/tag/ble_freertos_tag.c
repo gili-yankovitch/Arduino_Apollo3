@@ -146,7 +146,6 @@ main(void)
     //
     // Initialize plotting interface.
     //
-    am_util_debug_printf("FreeRTOS Tag Example\n");
 
     //
     // Run the application.

@@ -347,9 +347,6 @@ am_ble_isr(void)
 void
 RadioTaskSetup(void)
 {
-    am_util_debug_printf("RadioTask: setup\r\n");
-
-
     NVIC_SetPriority(BLE_IRQn, NVIC_configMAX_SYSCALL_INTERRUPT_PRIORITY);
 
     //
@@ -373,7 +370,7 @@ RadioTask(void *pvParameters)
     //
     // Enable ITM
     //
-    am_util_debug_printf("Starting wicentric trace:\n\n");
+    // am_util_debug_printf("Starting wicentric trace:\n\n");
 #endif
 
     //
