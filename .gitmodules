@@ -2,7 +2,7 @@
 	path = libraries/ATECCX08a
 	url = git@github.com:gili-yankovitch/SparkFun_ATECCX08a_Arduino_Library.git
 [submodule "micro-aes"]
-	path = micro-aes
+	path = payload/micro-aes
 	url = https://github.com/SmarterDM/micro-aes.git
 [submodule "payload/micro-ecc"]
 	path = payload/micro-ecc

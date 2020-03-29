@@ -49,7 +49,7 @@
 // Global includes for this project.
 //
 //*****************************************************************************
-#include "ble_freertos_tag.h"
+#include "ble_freertos.h"
 
 //*****************************************************************************
 //
@@ -103,8 +103,8 @@ TaskHandle_t radio_task_handle;
 //
 //*****************************************************************************
 void exactle_stack_init(void);
-void button_handler(wsfEventMask_t event, wsfMsgHdr_t *pMsg);
-void setup_buttons(void);
+//void button_handler(wsfEventMask_t event, wsfMsgHdr_t *pMsg);
+//void setup_buttons(void);
 //*****************************************************************************
 //
 // Timer for buttons.
@@ -154,6 +154,7 @@ void radio_timer_handler(void);
 // Poll the buttons.
 //
 //*****************************************************************************
+#if 0
 void
 button_handler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 {
@@ -189,7 +190,7 @@ button_handler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
     }
 #endif // AM_BSP_NUM_BUTTONS
 }
-
+#endif
 
 
 //*****************************************************************************
@@ -197,6 +198,7 @@ button_handler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 // Sets up a button interface.
 //
 //*****************************************************************************
+#if 0
 void
 setup_buttons(void)
 {
@@ -213,7 +215,7 @@ setup_buttons(void)
     WsfTimerStartSec(&ButtonTimer, 2);
 #endif // AM_BSP_NUM_BUTTONS
 }
-
+#endif
 
 //*****************************************************************************
 //

@@ -43,7 +43,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// This is part of revision v2.2.0-7-g63f7c2ba1 of the AmbiqSuite Development Package.
+// This is part of revision 2.3.2 of the AmbiqSuite Development Package.
 //
 //*****************************************************************************
 
@@ -58,7 +58,7 @@
 #include "queue.h"
 #include "portmacro.h"
 #include "portable.h"
-#include "ble_freertos_amdtps.h"
+#include "ble_freertos.h"
 
 //*****************************************************************************
 //
@@ -150,7 +150,6 @@ vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
     }
 }
 
-
 //*****************************************************************************
 //
 // High priority task to run immediately after the scheduler starts.
@@ -165,11 +164,6 @@ void
 setup_task(void *pvParameters)
 {
     //
-    // Print a debug message.
-    //
-    am_util_debug_printf("Running setup tasks...\r\n");
-
-    //
     // Run setup functions.
     //
     RadioTaskSetup();
@@ -178,6 +172,7 @@ setup_task(void *pvParameters)
     // Create the functional tasks
     //
     xTaskCreate(RadioTask, "RadioTask", 512, 0, 3, &radio_task_handle);
+
     //
     // The setup operations are complete, so suspend the setup task now.
     //
@@ -205,7 +200,6 @@ run_tasks(void)
     // Create essential tasks.
     //
     xTaskCreate(setup_task, "Setup", 512, 0, 3, &xSetupTask);
-
 
     //
     // Start the scheduler.

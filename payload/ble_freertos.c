@@ -1,6 +1,6 @@
 //*****************************************************************************
 //
-//! @file ble_freertos_tag.c
+//! @file ble_freertos.c
 //!
 //! @brief ARM Cordio BLE - Proximity Tag Example
 //!
@@ -56,7 +56,7 @@
 // that everywhere.
 //
 //*****************************************************************************
-#include "ble_freertos_tag.h"
+#include "ble_freertos.h"
 #include "rtos.h"
 
 //*****************************************************************************

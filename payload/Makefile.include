@@ -1,16 +1,7 @@
-# DEFINES += -DATECC_EEPROM_CONFIG
+SOURCES += payload/ble_freertos.c
+SOURCES += payload/radio_task.c
+SOURCES += payload/rtos.c
 
-#SOURCES += payload/tag/main.cpp
-SOURCES += payload/tag/ble_freertos_tag.c
-SOURCES += payload/tag/radio_task.c
-SOURCES += payload/tag/rtos.c
-#SOURCES += payload/amdtp_common.c
-#SOURCES += payload/amdtp_main.c
-#SOURCES += payload/amdtps_main.c
-#SOURCES += payload/ble_freertos_amdtps.c
-#SOURCES += payload/radio_task.c
-#SOURCES += payload/rtos.c
-#SOURCES += payload/svc_amdtp.c
 SOURCES += payload/ble_phy.cpp
 SOURCES += payload/ble_usr.cpp
 SOURCES += payload/ble_device_init.cpp
@@ -19,4 +10,5 @@ SOURCES += payload/ble_app_protocol.cpp
 SOURCES += payload/aes_cbc.cpp
 SOURCES += payload/sha256.c
 
+include payload/micro-aes/Makefile.include
 include payload/micro-ecc/Makefile.include
