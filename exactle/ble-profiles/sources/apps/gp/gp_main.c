@@ -120,9 +120,9 @@ static const appUpdateCfg_t tagUpdateCfg =
                                               connection parameter update; set to zero to disable */
   6, //640,                                    /*! Minimum connection interval in 1.25ms units */
   16, //800,                                    /*! Maximum connection interval in 1.25ms units */
-  0,                                      /*! Connection latency */
-  600,                                    /*! Supervision timeout in 10ms units */
-  5                                       /*! Number of update attempts before giving up */
+  50,                                      /*! Connection latency */
+  6000,                                    /*! Supervision timeout in 10ms units */
+  16                                       /*! Number of update attempts before giving up */
 };
 
 /*! Configurable parameters for service and characteristic discovery */
@@ -371,12 +371,13 @@ void gpSetUserCallback(void (*usrCb)(dmConnId_t, uint8_t *, uint16_t))
 	g_usrCb = usrCb;
 }
 
+#include "am_util_debug.h"
+
 void gpSendResponse(dmConnId_t connId, uint8_t * val, uint16_t len)
 {
 	AttsHandleValueNtf(connId, GP_TX_HDL, len, val);
 }
 
-#include "am_util_debug.h"
 /*************************************************************************************************/
 /*!
  *  \brief  ATTS write callback for Immediate Alert service.

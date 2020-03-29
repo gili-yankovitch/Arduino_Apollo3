@@ -76,25 +76,65 @@ bool_t bleSendEncrypted(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 	uint8_t padded_res[MAX_MSG_SIZE];
 	uint8_t encrypted_res[MAX_MSG_SIZE];
 	uint8_t pad = 0;
+	int i;
 
 	/* Reset buffer */
 	memset(padded_res, 0, MAX_MSG_SIZE);
 
-	/* Add padding field */
-	len++;
-
 	/* Make sure packet is padded */
-	if (len % AES_BLOCK_SIZE)
-		pad = AES_BLOCK_SIZE - (len % AES_BLOCK_SIZE);
+	if ((len + 1) % AES_BLOCK_SIZE)
+		pad = AES_BLOCK_SIZE - ((len + 1) % AES_BLOCK_SIZE);
 
 	padded_res[0] = pad;
-	memcpy(&padded_res[1], pkt, len - 1);
+	memcpy(&padded_res[1], pkt, len);
 
-	if (!aes256_cbc_encrypt(conn_config.aes_key, conn_config.aes_iv, padded_res, len, encrypted_res))
+	uprintf("AES Key: ");
+	for (i = 0; i < AES256_KEY_SIZE; ++i)
+	{
+		if (conn_config.aes_key[i] >> 4 == 0)
+			uprintf("0");
+
+		uprintf("%x ", conn_config.aes_key[i]);
+	}
+	uprintf("\r\n");
+
+	uprintf("AES IV: ");
+	for (i = 0; i < AES_BLOCK_SIZE; ++i)
+	{
+		if (conn_config.aes_iv[i] >> 4 == 0)
+			uprintf("0");
+
+		uprintf("%x ", conn_config.aes_iv[i]);
+	}
+	uprintf("\r\n");
+
+	if (!aes256_cbc_encrypt(conn_config.aes_key, conn_config.aes_iv, padded_res, len + 1 + pad, encrypted_res))
 		goto error;
 
+	uprintf("Plaintext: ");
+	for (i = 0; i < len + 1 + pad; ++i)
+	{
+		if (padded_res[i] >> 4 == 0)
+			uprintf("0");
+
+		uprintf("%x ", padded_res[i]);
+	}
+	uprintf("\r\n");
+
+	uprintf("Ciphertext: ");
+	for (i = 0; i < len + 1 + pad; ++i)
+	{
+		if (encrypted_res[i] >> 4 == 0)
+			uprintf("0");
+
+		uprintf("%x ", encrypted_res[i]);
+	}
+	uprintf("\r\n");
+
 	/* Send the encrypted packet */
-	bleSendFragmented(connId, encrypted_res, len + pad);
+	bleSendFragmented(connId, encrypted_res, len + 1 + pad);
+
+	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 
 	err = true;
 error:
@@ -103,21 +143,94 @@ error:
 
 void bleServer(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 {
+	int i;
 	uint8_t plain_req[MAX_MSG_SIZE];
 
 	memset(plain_req, 0, MAX_MSG_SIZE);
+
+	/* TODO: Add a new connection callback. */
+	uprintf("Before decryption...\r\n");
+
+	uprintf("AES Key: ");
+	for (i = 0; i < AES256_KEY_SIZE; ++i)
+	{
+		if (conn_config.aes_key[i] >> 4 == 0)
+			uprintf("0");
+
+		uprintf("%x ", conn_config.aes_key[i]);
+	}
+	uprintf("\r\n");
+
+	uprintf("AES IV: ");
+	for (i = 0; i < AES_BLOCK_SIZE; ++i)
+	{
+		if (conn_config.aes_iv[i] >> 4 == 0)
+			uprintf("0");
+
+		uprintf("%x ", conn_config.aes_iv[i]);
+	}
+	uprintf("\r\n");
 
 	/* Decrypt the packet */
 	if (!aes256_cbc_decrypt(conn_config.aes_key, conn_config.aes_iv, pkt, len, plain_req))
 		goto error;
 
-	// uprintf("Decryption done.\r\n");
+	uprintf("Decryption done.\r\n");
+
+	for (i = 0; i < len; ++ i)
+	{
+		if (plain_req[i] >> 4 == 0)
+			uprintf("0");
+
+		uprintf("%x ", plain_req[i]);
+	}
+	uprintf("\r\n");
 
 	/* Call upper layer */
 	bleProtocolHandler(connId, plain_req + 1, len - plain_req[0] /* Padding field */);
 
+	uprintf("%s::%d\r\n", __FILE__, __LINE__);
+
 error:
 	return;
+}
+
+static int bleRand(uint8_t * dest, unsigned size)
+{
+	int err = 0;
+#ifdef ATECC_EEPROM_CONFIG
+	int randIdx = 0;
+
+	do
+	{
+		int randomSize = MIN(RANDOM_BYTES_BLOCK_SIZE, size);
+
+		if (!atecc.updateRandom32Bytes(false))
+		{
+			uprintf("Error updating random\r\n");
+
+			goto error;
+		}
+
+		memcpy(dest + randIdx, atecc.random32Bytes, randomSize);
+
+		/* Advance for next block */
+		randIdx += randomSize;
+
+		size -= randomSize;
+	}
+	while (size > 0)
+#else
+	unsigned i;
+	randomSeed(analogRead(0));
+
+	for (i = 0; i < size; ++i)
+		dest[i] = random(255);
+#endif
+
+	err = 1;
+error:
+	return err;
 }
 
 void bleServerInit()
@@ -135,13 +248,6 @@ void bleServerInit()
 	uprintf("Successful wakeUp(). I2C connections are good.\r\n");
 
 	/* Generate an encryption key */
-	if (!atecc.updateRandom32Bytes(false))
-	{
-		uprintf("Error updating random\r\n");
-
-		goto error;
-	}
-
 	if (!atecc.readConfigZone(false))
 	{
 		uprintf("Error reading config zone.\r\n");
@@ -190,6 +296,11 @@ void bleServerInit()
 		*((uint8_t *)&conn_config + i) = eeprom_read(CONN_CONFIG_EEPROM_ADDR + i);
 #endif
 
+	memset(conn_config.aes_iv, 0, AES_BLOCK_SIZE);
+
+	/* Initialize random function for uECC */
+	uECC_set_rng(bleRand);
+
 #ifndef GENERATE_NEW_PASSWORD
 	/* Read data */
 	if ((conn_config.configured == CONN_CONFIGURED_MAGIC) || (conn_config.configured == CONN_CONECTED_MAGIC))
@@ -216,26 +327,18 @@ void bleServerInit()
 	else
 #endif
 	{
-#ifdef ATECC_EEPROM_CONFIG
-		uint8_t aes_key_write[AES256_KEY_SIZE];
-
-		for (i = 0; i < PASSWORD_LENGTH; ++i)
+		if (!bleRand(conn_config.password, PASSWORD_LENGTH))
 		{
-			conn_config.password[i] = charMap[atecc.random32Bytes[i] % (sizeof(charMap) - 1)];
+			uprintf("Error in random generation...\r\n");
+
+			goto error;
 		}
 
-		conn_config.password[PASSWORD_LENGTH] = '\0';
-
-#else
-		randomSeed(analogRead(0));
-
+		/* Convert random string to textual password as BLE AES PSK*/
 		for (i = 0; i < PASSWORD_LENGTH; ++i)
-		{
-			conn_config.password[i] = charMap[random(255) % (sizeof(charMap) - 1)];
-		}
-
+			conn_config.password[i] = charMap[conn_config.password[i] % (sizeof(charMap) - 1)];
 		conn_config.password[PASSWORD_LENGTH] = '\0';
-#endif
+
 		/* Hash the password */
 		bleSHA256(conn_config.password, PASSWORD_LENGTH, conn_config.aes_key);
 
@@ -261,6 +364,11 @@ void bleServerInit()
 			goto error;
 		}
 
+		/* This is impossible because slots need to be locked before READ is capable from DATA slots. */
+		/* Slots will be locked only after key generation */
+#if 0
+		uint8_t aes_key_write[AES256_KEY_SIZE];
+
 		/* Read conn key to verify write*/
 		if (!atecc.read_output(ZONE_DATA, CONN_KEY_ADDR, sizeof(aes_key_write), aes_key_write, false))
 		{
@@ -269,9 +377,6 @@ void bleServerInit()
 			goto error;
 		}
 
-		/* This is impossible because slots need to be locked before READ is capable from DATA slots. */
-		/* Slots will be locked only after key generation */
-#if 0
 		/* Verify write was successful*/
 		if (memcmp(conn_config.aes_key, aes_key_write, AES256_KEY_SIZE) != 0)
 		{
@@ -289,16 +394,6 @@ void bleServerInit()
 	{
 		uprintf("Password: %s\r\n", conn_config.password);
 	}
-
-	uprintf("AES Key: ");
-	for (i = 0; i < AES256_KEY_SIZE; ++i)
-	{
-		if (conn_config.aes_key[i] >> 4 == 0)
-			uprintf("0");
-
-		uprintf("%x ", conn_config.aes_key[i]);
-	}
-	uprintf("\r\n");
 
 	/* Call application init */
 	bleAppInit();

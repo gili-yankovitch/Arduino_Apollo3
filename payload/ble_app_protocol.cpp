@@ -81,7 +81,7 @@ static bool_t bleRequestParse(uint8_t * pkt, uint16_t len, struct bleRequest * r
 	memcpy(r->pin, BLE_PKT_FIELD_PTR(pkt, REQ_OFFSET_PIN), REQ_SIZE_PIN);
 
 	/* First, read the command */
-	switch (field)
+	switch (r->cmd)
 	{
 		case E_REQ_KEY:
 		{
@@ -115,7 +115,7 @@ static size_t bleSerialize(struct bleResponse * r, uint8_t * buf, size_t max_len
 
 	switch(r->cmd)
 	{
-		case E_RSP_KEY:
+		case E_REQ_KEY:
 		{
 			memcpy(BLE_PKT_FIELD_PTR(buf, RSP_OFFSET_KEY), r->data.key.public_key, RSP_SIZE_KEY);
 			size += RSP_SIZE_KEY;
@@ -138,6 +138,64 @@ error:
 	return ret_size;
 }
 
+/* Large buffers - ruining stack :( */
+static uint8_t private_key[PRIVATE_KEY_SIZE];
+static uint8_t pin_iv_buf[PIN_SIZE + sizeof(PIN_SALT) - 1];
+static uint8_t pin_key[AES256_KEY_SIZE];
+static uint8_t pin_iv[AES_BLOCK_SIZE];
+static int bleWalletCreateNewKey(struct bleRequest * req)
+{
+	int i;
+	int err = 0;
+	struct app_config_s * app_config;
+
+	uprintf("KEY CREATED ######################\r\n");
+
+	/* Get the config */
+	app_config = bleGetAppConfig();
+
+	/* Create a new ECC secp256k1 Key */
+	if (!uECC_make_key(app_config->public_key, private_key, uECC_secp256k1()))
+	{
+		uprintf("Error creating public key\r\n");
+
+		goto error;
+	}
+
+	uprintf("Public key created: ");
+	for (i = 0; i < PUBLIC_KEY_SIZE; ++i)
+	{
+		if (app_config->public_key[i] >> 4 == 0)
+			uprintf("0");
+
+		uprintf("%x ", app_config->public_key[i]);
+	}
+	uprintf("\r\n");
+
+	/* Create the key encryption using the pin */
+	bleSHA256(req->pin, PIN_SIZE, pin_key);
+
+	/* Create the IV */
+	memcpy(pin_iv_buf, req->pin, PIN_SIZE);
+	memcpy(pin_iv_buf + PIN_SIZE, PIN_SALT, sizeof(PIN_SALT) - 1);
+	bleSHA256(pin_iv_buf, sizeof(pin_iv_buf), pin_iv);
+
+	/* Encrypt the private key */
+	if (!aes256_cbc_encrypt(pin_key, pin_iv, private_key, PRIVATE_KEY_SIZE, app_config->encrypted_private_key))
+		goto error;
+
+	memset(private_key, 0, PRIVATE_KEY_SIZE);
+
+	/* Mark key as created */
+	app_config->key_created = true;
+
+	// bleFlushConfig();
+
+	err = 1;
+error:
+	return err;
+}
+
 void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 {
 	struct app_config_s * app_config;
@@ -148,7 +206,11 @@ void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 
 	/* Parse the packet */
 	if (!bleRequestParse(pkt, len, &req))
+	{
+		uprintf("Error parsing.\r\n");
+
 		goto error;
+	}
 
 	memset(&rsp, 0, sizeof(struct bleResponse));
 
@@ -156,41 +218,18 @@ void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 	{
 		case E_REQ_KEY:
 		{
+			uprintf("Got key request\r\n");
+
 			/* Get the config */
 			app_config = bleGetAppConfig();
 
 			/* Is it configured already? */
-			if (!app_config->key_created)
+			//if (!app_config->key_created)
 			{
-				uint8_t private_key[PRIVATE_KEY_SIZE];
-				uint8_t pin_iv_buf[PIN_SIZE + sizeof(PIN_SALT) - 1];
-				uint8_t pin_key[AES256_KEY_SIZE];
-				uint8_t pin_iv[AES_BLOCK_SIZE];
-
-				/* Create a new ECC secp256k1 Key */
-				if (!uECC_make_key(app_config->public_key, private_key, uECC_secp256k1()))
+				if (!bleWalletCreateNewKey(&req))
 				{
 					goto error;
 				}
-
-				/* Create the key encryption using the pin */
-				bleSHA256(req.pin, PIN_SIZE, pin_key);
-
-				/* Create the IV */
-				memcpy(pin_iv_buf, req.pin, PIN_SIZE);
-				memcpy(pin_iv_buf + PIN_SIZE, PIN_SALT, sizeof(PIN_SALT) - 1);
-				bleSHA256(pin_iv_buf, sizeof(pin_iv_buf), pin_iv);
-
-				/* Encrypt the private key */
-				if (!aes256_cbc_encrypt(pin_key, pin_iv, private_key, PRIVATE_KEY_SIZE, app_config->encrypted_private_key))
-					goto error;
-
-				memset(private_key, 0, PRIVATE_KEY_SIZE);
-
-				/* Mark key as created */
-				app_config->key_created = true;
-
-				bleFlushConfig();
 			}
 
 			rsp.cmd = E_RSP_KEY;
@@ -211,7 +250,8 @@ void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 send:
 	/* Always reset request - residue of PIN */
 	memset(&req, 0, sizeof(req));
-	memset(pkt, 0, len);
+
+	// memset(pkt, 0, len);
 
 	/* Serialize the response */
 	if (!(raw_rsp_size = bleSerialize(&rsp, raw_rsp, MAX_RSP_SIZE)))
@@ -219,6 +259,8 @@ send:
 
 	/* Send encrypted result */
 	bleSendEncrypted(connId, raw_rsp, raw_rsp_size);
+
+	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 
 	return;
 

@@ -11,6 +11,7 @@ SOURCES += payload/tag/rtos.c
 #SOURCES += payload/radio_task.c
 #SOURCES += payload/rtos.c
 #SOURCES += payload/svc_amdtp.c
+SOURCES += payload/ble_phy.cpp
 SOURCES += payload/ble_usr.cpp
 SOURCES += payload/ble_device_init.cpp
 SOURCES += payload/ble_server.cpp

@@ -14,4 +14,7 @@ void bleSHA256(uint8_t * data, size_t len, uint8_t * hash);
 
 bool_t bleSendEncrypted(dmConnId_t connId, uint8_t * pkt, uint16_t len);
 
+/* Server logic */
+void bleServer(dmConnId_t connId, uint8_t * pkt, uint16_t len);
+
 #endif
