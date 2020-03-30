@@ -8,6 +8,7 @@
 #include <aes.h>
 #include <uECC.h>
 #include "aes_cbc.h"
+#include "ble_config.h"
 #include "ble_usr.h"
 #include "ble_device_init.h"
 #include "ble_server.h"
@@ -224,7 +225,7 @@ void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 			app_config = bleGetAppConfig();
 
 			/* Is it configured already? */
-			//if (!app_config->key_created)
+			if (!app_config->key_created)
 			{
 				if (!bleWalletCreateNewKey(&req))
 				{
@@ -259,8 +260,6 @@ send:
 
 	/* Send encrypted result */
 	bleSendEncrypted(connId, raw_rsp, raw_rsp_size);
-
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 
 	return;
 

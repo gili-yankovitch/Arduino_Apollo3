@@ -8,6 +8,7 @@
 #include <aes.h>
 #include <uECC.h>
 #include "aes_cbc.h"
+#include "ble_config.h"
 #include "ble_usr.h"
 #include "ble_device_init.h"
 #include "ble_server.h"
@@ -22,37 +23,10 @@
 #include "sha256.h"
 #endif
 
-#define PASSWORD_LENGTH			16
 #define CONN_KEY_ADDR			EEPROM_DATA_ADDRESS(2, 0, 0)
 #define CONN_CONFIG_ADDR		EEPROM_DATA_ADDRESS(2, 1, 0)
-#define CONN_CONFIGURED_MAGIC	0x42
-#define CONN_CONECTED_MAGIC		0x43
 
 ATECCX08A atecc;
-
-static struct conn_config_s
-{
-	uint32_t configured;
-	uint8_t password[PASSWORD_LENGTH + 1];
-#ifndef ATECC_EEPROM_CONFIG
-	uint8_t aes_key[AES256_KEY_SIZE];
-	uint8_t aes_iv[AES_BLOCK_SIZE];
-#endif
-	struct  app_config_s app_config;
-} conn_config;
-
-#define CONN_CONFIG_EEPROM_ADDR 0
-
-struct app_config_s * bleGetAppConfig()
-{
-	return &conn_config.app_config;
-}
-
-void bleFlushConfig()
-{
-	/* Write to flash */
-	writeBlockToEEPROM(CONN_CONFIG_EEPROM_ADDR, (uint8_t *)&conn_config, sizeof(conn_config));
-}
 
 void bleSHA256(uint8_t * data, size_t len, uint8_t * hash)
 {
@@ -72,11 +46,12 @@ void bleSHA256(uint8_t * data, size_t len, uint8_t * hash)
 
 bool_t bleSendEncrypted(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 {
+	int i;
 	bool_t err = false;
 	uint8_t padded_res[MAX_MSG_SIZE];
 	uint8_t encrypted_res[MAX_MSG_SIZE];
 	uint8_t pad = 0;
-	int i;
+	struct conn_config_s * conn_config = bleGetConfig();
 
 	/* Reset buffer */
 	memset(padded_res, 0, MAX_MSG_SIZE);
@@ -87,30 +62,30 @@ bool_t bleSendEncrypted(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 
 	padded_res[0] = pad;
 	memcpy(&padded_res[1], pkt, len);
-
+#if 0
 	uprintf("AES Key: ");
 	for (i = 0; i < AES256_KEY_SIZE; ++i)
 	{
-		if (conn_config.aes_key[i] >> 4 == 0)
+		if (conn_config->aes_key[i] >> 4 == 0)
 			uprintf("0");
 
-		uprintf("%x ", conn_config.aes_key[i]);
+		uprintf("%x ", conn_config->aes_key[i]);
 	}
 	uprintf("\r\n");
 
 	uprintf("AES IV: ");
 	for (i = 0; i < AES_BLOCK_SIZE; ++i)
 	{
-		if (conn_config.aes_iv[i] >> 4 == 0)
+		if (conn_config->aes_iv[i] >> 4 == 0)
 			uprintf("0");
 
-		uprintf("%x ", conn_config.aes_iv[i]);
+		uprintf("%x ", conn_config->aes_iv[i]);
 	}
 	uprintf("\r\n");
-
-	if (!aes256_cbc_encrypt(conn_config.aes_key, conn_config.aes_iv, padded_res, len + 1 + pad, encrypted_res))
+#endif
+	if (!aes256_cbc_encrypt(conn_config->aes_key, conn_config->aes_iv, padded_res, len + 1 + pad, encrypted_res))
 		goto error;
-
+#if 0
 	uprintf("Plaintext: ");
 	for (i = 0; i < len + 1 + pad; ++i)
 	{
@@ -130,11 +105,9 @@ bool_t bleSendEncrypted(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 		uprintf("%x ", encrypted_res[i]);
 	}
 	uprintf("\r\n");
-
+#endif
 	/* Send the encrypted packet */
 	bleSendFragmented(connId, encrypted_res, len + 1 + pad);
-
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 
 	err = true;
 error:
@@ -145,36 +118,37 @@ void bleServer(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 {
 	int i;
 	uint8_t plain_req[MAX_MSG_SIZE];
+	struct conn_config_s * conn_config = bleGetConfig();
 
 	memset(plain_req, 0, MAX_MSG_SIZE);
 
 	/* TODO: Add a new connection callback. */
-	uprintf("Before decryption...\r\n");
-
+#if 0
 	uprintf("AES Key: ");
 	for (i = 0; i < AES256_KEY_SIZE; ++i)
 	{
-		if (conn_config.aes_key[i] >> 4 == 0)
+		if (conn_config->aes_key[i] >> 4 == 0)
 			uprintf("0");
 
-		uprintf("%x ", conn_config.aes_key[i]);
+		uprintf("%x ", conn_config->aes_key[i]);
 	}
 	uprintf("\r\n");
 
 	uprintf("AES IV: ");
 	for (i = 0; i < AES_BLOCK_SIZE; ++i)
 	{
-		if (conn_config.aes_iv[i] >> 4 == 0)
+		if (conn_config->aes_iv[i] >> 4 == 0)
 			uprintf("0");
 
-		uprintf("%x ", conn_config.aes_iv[i]);
+		uprintf("%x ", conn_config->aes_iv[i]);
 	}
 	uprintf("\r\n");
-
+#endif
 	/* Decrypt the packet */
-	if (!aes256_cbc_decrypt(conn_config.aes_key, conn_config.aes_iv, pkt, len, plain_req))
+	if (!aes256_cbc_decrypt(conn_config->aes_key, conn_config->aes_iv, pkt, len, plain_req))
 		goto error;
 
+#if 0
 	uprintf("Decryption done.\r\n");
 
 	for (i = 0; i < len; ++ i)
@@ -185,11 +159,10 @@ void bleServer(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 		uprintf("%x ", plain_req[i]);
 	}
 	uprintf("\r\n");
+#endif
 
 	/* Call upper layer */
 	bleProtocolHandler(connId, plain_req + 1, len - plain_req[0] /* Padding field */);
-
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 
 error:
 	return;
@@ -238,6 +211,7 @@ void bleServerInit()
 	int i;
 	uint8_t charMap[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	uint8_t hash[SHA256_SIZE];
+	struct conn_config_s * conn_config = bleGetConfig();
 
 #ifdef ATECC_EEPROM_CONFIG
 	Wire.begin();
@@ -283,40 +257,25 @@ void bleServerInit()
 	}
 #endif
 
-	memset(&conn_config, 0, sizeof(conn_config));
-
-	/* Read Conn Encryption configuration */
-#ifdef ATECC_EEPROM_CONFIG
-	/* Read configure status */
-	for (i = 0; i < sizeof(conn_config.configured); ++i)
-		*((uint8_t *)&conn_config.configured + i) = eeprom_read(CONN_CONFIG_EEPROM_ADDR + i);
-#else
-	/* Read config */
-	for (i = 0; i < sizeof(conn_config); ++i)
-		*((uint8_t *)&conn_config + i) = eeprom_read(CONN_CONFIG_EEPROM_ADDR + i);
-#endif
-
-	memset(conn_config.aes_iv, 0, AES_BLOCK_SIZE);
-
 	/* Initialize random function for uECC */
 	uECC_set_rng(bleRand);
 
 #ifndef GENERATE_NEW_PASSWORD
 	/* Read data */
-	if ((conn_config.configured == CONN_CONFIGURED_MAGIC) || (conn_config.configured == CONN_CONECTED_MAGIC))
+	if ((conn_config->configured == CONN_CONFIGURED_MAGIC) || (conn_config->configured == CONN_CONECTED_MAGIC))
 	{
 #ifdef ATECC_EEPROM_CONFIG
 		uprintf("Reading from Crypto chip EEPROM\r\n");
 
 		/* If only configured, read password from EEPROM */
-		if (conn_config.configured == CONN_CONFIGURED_MAGIC)
+		if (conn_config->configured == CONN_CONFIGURED_MAGIC)
 		{
-			for (i = 0; i < sizeof(conn_config.password); ++i)
-				conn_config.password[i] = eeprom_read(CONN_CONFIG_EEPROM_ADDR + sizeof(conn_config.configured) + i);
+			for (i = 0; i < sizeof(conn_config->password); ++i)
+				conn_config->password[i] = eeprom_read(CONN_CONFIG_EEPROM_ADDR + sizeof(conn_config->configured) + i);
 		}
 
 		/* Read conn key */
-		if (!atecc.read_output(ZONE_DATA, CONN_KEY_ADDR, sizeof(conn_config.aes_key), conn_config.aes_key, false))
+		if (!atecc.read_output(ZONE_DATA, CONN_KEY_ADDR, sizeof(conn_config->aes_key), conn_config->aes_key, false))
 		{
 			uprintf("Error reading from Crypto Chip EEPROM: Connection Key\r\n");
 
@@ -327,7 +286,7 @@ void bleServerInit()
 	else
 #endif
 	{
-		if (!bleRand(conn_config.password, PASSWORD_LENGTH))
+		if (!bleRand(conn_config->password, PASSWORD_LENGTH))
 		{
 			uprintf("Error in random generation...\r\n");
 
@@ -336,14 +295,17 @@ void bleServerInit()
 
 		/* Convert random string to textual password as BLE AES PSK*/
 		for (i = 0; i < PASSWORD_LENGTH; ++i)
-			conn_config.password[i] = charMap[conn_config.password[i] % (sizeof(charMap) - 1)];
-		conn_config.password[PASSWORD_LENGTH] = '\0';
+			conn_config->password[i] = charMap[conn_config->password[i] % (sizeof(charMap) - 1)];
+		conn_config->password[PASSWORD_LENGTH] = '\0';
 
 		/* Hash the password */
-		bleSHA256(conn_config.password, PASSWORD_LENGTH, conn_config.aes_key);
+		bleSHA256(conn_config->password, PASSWORD_LENGTH, conn_config->aes_key);
+
+		/* Reset IV */
+		memset(conn_config->aes_iv, 0, AES_BLOCK_SIZE);
 
 		/* Mark as configured */
-		conn_config.configured = CONN_CONFIGURED_MAGIC;
+		conn_config->configured = CONN_CONFIGURED_MAGIC;
 
 #ifdef ATECC_EEPROM_CONFIG
 		if (!atecc.configLockStatus)
@@ -357,7 +319,7 @@ void bleServerInit()
 		uprintf("Writing connection key to crypto chip\r\n");
 
 		/* Write key */
-		if (!atecc.write(ZONE_DATA, CONN_KEY_ADDR, conn_config.aes_key, sizeof(conn_config.aes_key)))
+		if (!atecc.write(ZONE_DATA, CONN_KEY_ADDR, conn_config->aes_key, sizeof(conn_config->aes_key)))
 		{
 			uprintf("Failed writing encryption key to EEPROM\r\n");
 
@@ -378,7 +340,7 @@ void bleServerInit()
 		}
 
 		/* Verify write was successful*/
-		if (memcmp(conn_config.aes_key, aes_key_write, AES256_KEY_SIZE) != 0)
+		if (memcmp(conn_config->aes_key, aes_key_write, AES256_KEY_SIZE) != 0)
 		{
 			uprintf("ERROR: Connection key was not written properly to crypto chip!\r\n");
 		}
@@ -390,9 +352,9 @@ void bleServerInit()
 	}
 
 	/* Before connected, print the password */
-	if (conn_config.configured == CONN_CONFIGURED_MAGIC)
+	if (conn_config->configured == CONN_CONFIGURED_MAGIC)
 	{
-		uprintf("Password: %s\r\n", conn_config.password);
+		uprintf("Password: %s\r\n", conn_config->password);
 	}
 
 	/* Call application init */

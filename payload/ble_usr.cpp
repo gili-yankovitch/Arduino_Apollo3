@@ -4,6 +4,7 @@
 #include <dm_api.h>
 #include <gp/gp_api.h>
 #include "ble_usr.h"
+#include "ble_server.h"
 #include "ble_phy.h"
 
 #define uprintf am_util_debug_printf
@@ -71,8 +72,6 @@ static void bleSendNextFragment()
 	/* Send */
 	blePhyEncode(out_frags[sent_frag_idx].connId, out_frags[sent_frag_idx].data, out_frags[sent_frag_idx].fragmentSize);
 
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
-
 	/* Advance fragment index */
 	sent_frag_idx++;
 }
@@ -88,8 +87,6 @@ static void bleRequestNextFragment(dmConnId_t connId)
 
 	/* Request */
 	blePhyEncode(connId, request, FRAG_HEADER_SIZE);
-
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 }
 
 void bleSendFragmented(dmConnId_t connId, uint8_t * packet_data, uint16_t len)
@@ -141,8 +138,6 @@ void bleSendFragmented(dmConnId_t connId, uint8_t * packet_data, uint16_t len)
 
  	/* Send first fragment */
  	bleSendNextFragment();
-
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 }
 
 void bleUsrCallback(dmConnId_t connId, uint8_t * pkt, uint16_t len)
@@ -245,8 +240,6 @@ void bleUsrCallback(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 
 	/* Call server function */
 	bleServer(connId, handler.packet, handler.total_len);
-
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 
 error:
 end:

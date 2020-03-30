@@ -1,7 +1,9 @@
 SOURCES += payload/ble_freertos.c
-SOURCES += payload/radio_task.c
 SOURCES += payload/rtos.c
+SOURCES += payload/radio_task.c
+SOURCES += payload/config_task.c
 
+SOURCES += payload/ble_config.cpp
 SOURCES += payload/ble_phy.cpp
 SOURCES += payload/ble_usr.cpp
 SOURCES += payload/ble_device_init.cpp

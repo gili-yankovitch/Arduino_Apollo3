@@ -48,7 +48,7 @@ void blePhyEncode(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 	int i;
 	uint8_t encoded_pkt[MAX_PDU];
 
-	uprintf("Encoding...\r\n");
+	//uprintf("Encoding...\r\n");
 
 	memcpy(encoded_pkt + PHY_HDR_SIZE, pkt, len);
 
@@ -64,22 +64,18 @@ void blePhyEncode(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 		else
 			encoded_pkt[i / BITS_IN_BYTE] &= ~(1 << (i % BITS_IN_BYTE));
 
-		uprintf("%x ", encoded_pkt[PHY_HDR_SIZE + i]);
+		//uprintf("%x ", encoded_pkt[PHY_HDR_SIZE + i]);
 
 	}
 
 	encoded_pkt[0] &= 0b01111111;
 	encoded_pkt[1] &= 0b01111111;
-	uprintf("(%x %x) len = %d\r\n", encoded_pkt[0], encoded_pkt[1], len);
+	//uprintf("(%x %x) len = %d\r\n", encoded_pkt[0], encoded_pkt[1], len);
 
 	gpSendResponse(connId, encoded_pkt, PHY_HDR_SIZE + len);
 
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
-
 	/* Wait a bit */
 	delay(50);
-
-	uprintf("%s::%d\r\n", __FILE__, __LINE__);
 }
 
 extern "C" void gp_setup()
