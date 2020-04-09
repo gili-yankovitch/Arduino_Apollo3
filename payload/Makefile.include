@@ -9,6 +9,8 @@ SOURCES += payload/ble_usr.cpp
 SOURCES += payload/ble_device_init.cpp
 SOURCES += payload/ble_server.cpp
 SOURCES += payload/ble_app_protocol.cpp
+SOURCES += payload/ble_deepsleep.cpp
+
 SOURCES += payload/aes_cbc.cpp
 SOURCES += payload/sha256.c
 

@@ -56,6 +56,13 @@
 // that everywhere.
 //
 //*****************************************************************************
+//#include "ap3_gpio.h"
+//#include "variant.h"
+
+typedef unsigned char bool;
+#include <stdint.h>
+#include <hal/am_hal_status.h>
+#include <hal/am_hal_gpio.h>
 #include "ble_freertos.h"
 #include "rtos.h"
 
@@ -96,15 +103,46 @@ static void ap3_init( void )
     //am_hal_interrupt_master_enable();
 }
 
+#if 0
+static void padMode(uint8_t pad, am_hal_gpio_pincfg_t mode, ap3_err_t *retval)
+{
+    if (!ap3_gpio_is_valid(pad))
+    {
+        if (retval != NULL)
+        {
+            *retval = AP3_OUT_OF_RANGE;
+        }
+        return;
+    }
+    am_hal_gpio_pinconfig(pad, mode);
+
+    //Reset analog configuration flag if this pin has analog capabilities
+    uint8_t indi;
+    for (indi = 0; indi < AP3_ANALOG_PADS; indi++)
+    {
+        if (ap3_analog_configure_map[indi].pad == pad)
+        {
+            ap3_analog_configure_map[indi].isAnalog = false;
+            break;
+        }
+    }
+}
+#endif
+extern am_hal_gpio_pincfg_t g_AM_HAL_GPIO_OUTPUT_WITH_READ_12;
 
 //*****************************************************************************
 //
 // Main Function
 //
 //*****************************************************************************
+
+extern const am_hal_gpio_pincfg_t g_AM_HAL_GPIO_ENABLE;
+
 int
 main(void)
 {
+	// ap3_err_t ret;
+
     //
     // Set the clock frequency
     //
@@ -131,6 +169,23 @@ main(void)
     // Configure the board for low power.
     //
     am_bsp_low_power_init();
+
+    // Turn on LED
+    //padMode(19, AP3_PINCFG_OUTPUT, &ret);
+    // AP3_PINCFG_OUTPUT
+
+    // am_hal_rtc_osc_enable();
+    //am_hal_gpio_pinconfig(20, g_AM_HAL_GPIO_ENABLE);
+    // am_hal_gpio_pinconfig(21, g_AM_HAL_GPIO_ENBLE);
+    // am_hal_gpio_pinconfig(48, g_AM_HAL_GPIO_ENABLE);
+    // am_hal_gpio_pinconfig(49, g_AM_HAL_GPIO_ENBLE);
+
+    // am_hal_stimer_config(AM_HAL_STIMER_HFRC_3MHZ);
+
+    am_hal_gpio_pinconfig(19, g_AM_HAL_GPIO_OUTPUT_WITH_READ_12);
+    am_hal_gpio_output_set(19);
+    // am_hal_gpio_pinconfig(38, g_AM_HAL_GPIO_OUTPUT_WITH_READ_12);
+    // am_hal_gpio_output_set(38);
 
     // Turn off unused Flash & SRAM
 

@@ -172,7 +172,7 @@ setup_task(void *pvParameters)
     //
     // Create the functional tasks
     //
-    xTaskCreate(ConfigTask, "ConfigTask", 512, 0, 2, &config_task_handle);
+    xTaskCreate(ConfigTask, "ConfigTask", 2048, 0, 2, &config_task_handle);
     xTaskCreate(RadioTask, "RadioTask", 512, 0, 3, &radio_task_handle);
 
     //

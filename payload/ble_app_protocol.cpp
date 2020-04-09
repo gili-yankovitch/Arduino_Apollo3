@@ -13,6 +13,8 @@
 #include "ble_device_init.h"
 #include "ble_server.h"
 #include "ble_app_protocol.h"
+#include "ble_deepsleep.h"
+#include "sha256.h"
 
 #define uprintf am_util_debug_printf
 
@@ -24,13 +26,23 @@
 /* Offsets */
 #define REQ_SIZE_CMD	1
 #define REQ_OFFSET_CMD	0
+
 #define REQ_SIZE_PIN	PIN_SIZE
 #define REQ_OFFSET_PIN	(REQ_OFFSET_CMD + REQ_SIZE_CMD)
 
+#define REQ_SIZE_SIGN	SHA256_BLOCK_SIZE
+#define REQ_OFFSET_SIGN	(REQ_OFFSET_PIN + REQ_SIZE_PIN)
+
+
+
 #define RSP_SIZE_CMD	1
 #define RSP_OFFSET_CMD	0
+
 #define RSP_SIZE_KEY	PUBLIC_KEY_SIZE
 #define RSP_OFFSET_KEY	(RSP_OFFSET_CMD + RSP_SIZE_CMD)
+
+#define RSP_SIZE_SIGN	SIGNATURE_SIZE
+#define RSP_OFFSET_SIGN	(RSP_OFFSET_CMD + RSP_SIZE_CMD)
 
 /* All fields are 1 bytes size to avoid and endianess confusion */
 #define BLE_PKT_FIELD(pkt, FIELD)	*((uint8_t *)pkt + (FIELD))
@@ -38,12 +50,16 @@
 
 enum req_e
 {
-	E_REQ_KEY
+	E_REQ_KEY,
+	E_REQ_SIGN,
+	E_REQ_POWER
 };
 
 enum rsp_e
 {
 	E_RSP_KEY,
+	E_RSP_SIGN,
+	E_RSP_POWER,
 	E_RSP_ERR
 };
 
@@ -51,6 +67,13 @@ struct bleRequest
 {
 	enum req_e cmd;
 	uint8_t pin[PIN_SIZE];
+	union
+	{
+		struct
+		{
+			uint8_t hash[SHA256_BLOCK_SIZE];
+		} sign;
+	} data;
 };
 
 struct bleResponse
@@ -63,6 +86,11 @@ struct bleResponse
 		{
 			uint8_t public_key[PUBLIC_KEY_SIZE];
 		} key;
+
+		struct
+		{
+			uint8_t signature[SIGNATURE_SIZE];
+		} sign;
 	} data;
 };
 
@@ -85,6 +113,21 @@ static bool_t bleRequestParse(uint8_t * pkt, uint16_t len, struct bleRequest * r
 	switch (r->cmd)
 	{
 		case E_REQ_KEY:
+		{
+			/* No additional processing */
+
+			break;
+		}
+
+		case E_REQ_SIGN:
+		{
+			/* Copy the hash */
+			memcpy(r->data.sign.hash, BLE_PKT_FIELD_PTR(pkt, REQ_OFFSET_SIGN), REQ_SIZE_SIGN);
+
+			break;
+		}
+
+		case E_REQ_POWER:
 		{
 			/* No additional processing */
 
@@ -116,13 +159,31 @@ static size_t bleSerialize(struct bleResponse * r, uint8_t * buf, size_t max_len
 
 	switch(r->cmd)
 	{
-		case E_REQ_KEY:
+		case E_RSP_KEY:
 		{
 			memcpy(BLE_PKT_FIELD_PTR(buf, RSP_OFFSET_KEY), r->data.key.public_key, RSP_SIZE_KEY);
 			size += RSP_SIZE_KEY;
 
 			if (size > max_len)
 				goto error;
+
+			break;
+		}
+
+		case E_RSP_SIGN:
+		{
+			memcpy(BLE_PKT_FIELD_PTR(buf, RSP_OFFSET_SIGN), r->data.sign.signature, RSP_SIZE_SIGN);
+			size += RSP_SIZE_SIGN;
+
+			if (size > max_len)
+				goto error;
+
+			break;
+		}
+
+		case E_RSP_POWER:
+		{
+			/* No additional processing */
 
 			break;
 		}
@@ -149,8 +210,6 @@ static int bleWalletCreateNewKey(struct bleRequest * req)
 	int i;
 	int err = 0;
 	struct app_config_s * app_config;
-
-	uprintf("KEY CREATED ######################\r\n");
 
 	/* Get the config */
 	app_config = bleGetAppConfig();
@@ -180,6 +239,8 @@ static int bleWalletCreateNewKey(struct bleRequest * req)
 	memcpy(pin_iv_buf, req->pin, PIN_SIZE);
 	memcpy(pin_iv_buf + PIN_SIZE, PIN_SALT, sizeof(PIN_SALT) - 1);
 	bleSHA256(pin_iv_buf, sizeof(pin_iv_buf), pin_iv);
+	memset(pin_key, 0, SHA256_BLOCK_SIZE);
+	memset(pin_iv_buf, 0, SHA256_BLOCK_SIZE);
 
 	/* Encrypt the private key */
 	if (!aes256_cbc_encrypt(pin_key, pin_iv, private_key, PRIVATE_KEY_SIZE, app_config->encrypted_private_key))
@@ -190,7 +251,7 @@ static int bleWalletCreateNewKey(struct bleRequest * req)
 	/* Mark key as created */
 	app_config->key_created = true;
 
-	// bleFlushConfig();
+	bleFlushConfig();
 
 	err = 1;
 error:
@@ -199,6 +260,7 @@ error:
 
 void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 {
+	int i;
 	struct app_config_s * app_config;
 	struct bleRequest req;
 	struct bleResponse rsp;
@@ -213,6 +275,9 @@ void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 		goto error;
 	}
 
+	/* Make sure device does not shut down */
+	bleKickDeepSleep();
+
 	memset(&rsp, 0, sizeof(struct bleResponse));
 
 	switch (req.cmd)
@@ -225,18 +290,80 @@ void bleProtocolHandler(dmConnId_t connId, uint8_t * pkt, uint16_t len)
 			app_config = bleGetAppConfig();
 
 			/* Is it configured already? */
-			if (!app_config->key_created)
+			if (app_config->key_created != true)
 			{
 				if (!bleWalletCreateNewKey(&req))
 				{
 					goto error;
 				}
 			}
+			else
+			{
+				uprintf("Public key from config: ");
+				for (i = 0; i < PUBLIC_KEY_SIZE; ++i)
+				{
+					if (app_config->public_key[i] >> 4 == 0)
+						uprintf("0");
+
+					uprintf("%x ", app_config->public_key[i]);
+				}
+				uprintf("\r\n");
+			}
 
 			rsp.cmd = E_RSP_KEY;
 
 			/* Copy public key to the response buffer */
 			memcpy(rsp.data.key.public_key, app_config->public_key, PUBLIC_KEY_SIZE);
+
+			break;
+		}
+
+		case E_REQ_SIGN:
+		{
+			uprintf("Got signature request\r\n");
+
+			/* Get the app config */
+			app_config = bleGetAppConfig();
+
+			if (app_config->key_created != true)
+			{
+				uprintf("Requested sign but uninitialized key \r\n");
+
+				goto error;
+			}
+
+			/* Create the key encryption using the pin */
+			bleSHA256(req.pin, PIN_SIZE, pin_key);
+
+			/* Create the IV */
+			memcpy(pin_iv_buf, req.pin, PIN_SIZE);
+			memcpy(pin_iv_buf + PIN_SIZE, PIN_SALT, sizeof(PIN_SALT) - 1);
+			bleSHA256(pin_iv_buf, sizeof(pin_iv_buf), pin_iv);
+
+			/* Encrypt the private key */
+			if (!aes256_cbc_decrypt(pin_key, pin_iv, app_config->encrypted_private_key, PRIVATE_KEY_SIZE, private_key))
+				goto error;
+
+			/* Sign payload */
+			if (!uECC_sign(private_key, req.data.sign.hash, SHA256_BLOCK_SIZE, rsp.data.sign.signature, uECC_secp256k1()))
+			{
+				uprintf("Error signing hash\r\n");
+
+				goto error;
+			}
+
+			memset(private_key, 0, PRIVATE_KEY_SIZE);
+			memset(pin_key, 0, SHA256_BLOCK_SIZE);
+			memset(pin_iv_buf, 0, SHA256_BLOCK_SIZE);
+
+			break;
+		}
+
+		case E_REQ_POWER:
+		{
+			uprintf("Got power request\r\n");
+
+			bleDeepSleep();
 
 			break;
 		}
